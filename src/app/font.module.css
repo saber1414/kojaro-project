@@ -1,0 +1,14 @@
+@font-face {
+    font-family: "IRANYekanLight";
+    src: url("../../public/fonts/IRANYekanWebLight.woff2") format(woff2);
+}
+
+@font-face {
+    font-family: "IRANYekanMedium";
+    src: url("../../public/fonts/IRANYekanWebMedium.woff2") format(woff2);
+}
+
+@font-face {
+    font-family: "IRANYekanBold";
+    src: url("../../public/fonts/IRANYekanWebBold.woff2") format(woff2);
+}
