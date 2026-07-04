@@ -9,7 +9,8 @@
   --color-dark2: #2b2d2e;
   --color-white: #ffffff;
   --color-white2: #E8E2D8;
-  --color-blueMenu: #1e88e5
+  --color-blueMenu: #1e88e5;
+  --color-gray-5: rgb(255 255 255 / 30%);
 }
 
 @layer base {
