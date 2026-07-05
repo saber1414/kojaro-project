@@ -6,9 +6,9 @@ const AdsAbove = () => {
     const [showAdsAbove, setShowAdsAbove] = useState<boolean>(true);
 
     return (
-        <div className={`w-full h-47.75 relative ${showAdsAbove ? "block" : "hidden"}`}>
+        <div className={`w-full h-47.75 hidden relative ${showAdsAbove ? "block lg:block" : "hidden"}`}>
             <Link href="#">
-                <img src="/images/adsAbove.gif" alt="adsAbove" />
+                <img src="images/adsAbove.gif" className='h-41.25 xl:h-[190.5px]' alt="adsAbove" />
             </Link>
             <button
                 type="button"
@@ -21,4 +21,4 @@ const AdsAbove = () => {
     )
 }
 
-export default AdsAbove
+export default AdsAbove;

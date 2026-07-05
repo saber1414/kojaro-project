@@ -142,6 +142,11 @@ const Navbar = () => {
                 }
             </div>
             <NavMenu />
+            {
+                searchContents.length > 0 && (
+                    <div onClick={() => setSearchContents("")} className="fixed z-10 bg-overview top-62 right-0 left-0 bottom-0"></div>
+                )
+            }
         </>
     )
 }

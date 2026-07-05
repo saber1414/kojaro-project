@@ -86,7 +86,7 @@ const SliderBanner = () => {
   }, []);
 
   return (
-    <section className='w-full h-165 relative overflow-hidden'>
+    <section className='w-full h-165 relative overflow-hidden hidden lg:block'>
       <div
         className='absolute inset-0 bg-cover bg-center bg-no-repeat blur-lg scale-105 transition-all duration-1000 ease-in-out'
         style={{ backgroundImage: `url(${slides[activeIndex].image})` }}
