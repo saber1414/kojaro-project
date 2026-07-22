@@ -10,6 +10,7 @@
   --color-white: #ffffff;
   --color-white2: #E8E2D8;
   --color-blueMenu: #1e88e5;
+  --color-gray-bg: #f9f9f9;
   --color-gray-5: rgb(255 255 255 / 30%);
   --color-overview: rgba(0, 0, 0, 0.40);
 }
@@ -32,7 +33,7 @@
   body {
     font-family: var(--font-IRANYekan-Meduim);
     font-size: 0.95rem;
-    background-color: var(--color-white);
+    background-color: var(--color-gray-bg) !important;
     color: var(--color-dark);
   }
 
@@ -40,5 +41,14 @@
     max-width: 100%;
     margin-right: auto;
     margin-left: auto;
+  }
+
+  .swiper-button-disabled {
+    opacity: 0.5 !important;
+    cursor: context-menu !important;
+  }
+
+  .swiper-button-disabled svg {
+    fill: #9ca3af !important;
   }
 }
