@@ -1,0 +1,8 @@
+html.dark body {
+    background-color: var(--color-dark) !important;
+}
+
+html.dark *{
+     background-color: var(--color-dark);
+     color: var(--color-white);
+}

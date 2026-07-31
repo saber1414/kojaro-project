@@ -8,7 +8,7 @@ const AdsAbove = () => {
     return (
         <div className={`w-full h-47.75 hidden relative ${showAdsAbove ? "block lg:block" : "hidden"}`}>
             <Link href="#">
-                <img src="images/adsAbove.gif" className='h-41.25 xl:h-[190.5px]' alt="adsAbove" />
+                <img src="images/adsAbove.gif" className='h-41.25 xl:h-[190.5px] w-full' alt="adsAbove" />
             </Link>
             <button
                 type="button"
