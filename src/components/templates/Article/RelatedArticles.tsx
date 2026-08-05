@@ -3,7 +3,7 @@ import React from 'react'
 
 const RelatedArticles = () => {
     return (
-        <div className='mt-20 grid grid-cols-3 gap-4'>
+        <div className='mt-20 grid xl:grid-cols-3 lg:grid-cols-2 gap-4'>
             <Link href="#" className='flex items-center gap-x-4'>
                 <img src="/images/image01.jpg" className='w-44 h-29.25 rounded-sm' alt="article img" />
                 <div>

@@ -117,8 +117,7 @@ const Comments = forwardRef<HTMLDivElement>((props, ref) => {
             <div className="mt-4">
               {comment.reactionCount! > 0 && (
                 <div className="bg-gray-200 w-15 flex items-center justify-center gap-x-4 h-7 rounded-full mb-4">
-                  <button
-                    type="button"
+                  <div 
                     onClick={() => toggleReactionBox(comment._id)}
                     className='cursor-pointer flex items-center'
                   >
@@ -128,7 +127,7 @@ const Comments = forwardRef<HTMLDivElement>((props, ref) => {
                       </text>
                     </svg>
                     <span className='text-[13px] block mt-1'>{comment.reactionCount}</span>
-                  </button>
+                  </div>
                 </div>
               )}
               <button
@@ -142,20 +141,18 @@ const Comments = forwardRef<HTMLDivElement>((props, ref) => {
                 {isActive && (
                   <div className="w-73 h-13 bg-gray-10 rounded-full p-2 absolute -top-12.75 flex items-center gap-x-4 z-30">
                     {reactionButtons.map((btn) => (
-                      <button
+                      <div 
                         key={btn.key}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleReaction(comment._id, btn.key);
                         }}
-                        type="button"
-                        title={btn.label}
                         className='cursor-pointer hover:scale-110 transition-transform'
                       >
                         <svg width="32" height="32" viewBox="0 0 32 32">
                           <text x="16" y="24" textAnchor="middle" fontSize="24">{btn.emoji}</text>
                         </svg>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 )}

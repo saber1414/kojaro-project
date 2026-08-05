@@ -21,8 +21,8 @@ const Advertisement = () => {
                                 <span className='w-full h-px block bg-gray-200'></span>
                             </div>
                         </div>
-                        <Link href="#" className='mt-1'>
-                            <img src="/images/advertisement01.jpg" className='rounded-sm' alt="advertisement" />
+                        <Link href="#" className='mt-1 w-full'>
+                            <img src="/images/advertisement01.jpg" className='rounded-sm w-[inherit]' alt="advertisement" />
                         </Link>
                     </>
                 )
