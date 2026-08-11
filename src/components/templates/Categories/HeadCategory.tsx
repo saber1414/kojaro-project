@@ -1,8 +1,22 @@
 'use client'
 import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import Bookmark from '../Article/Bookmark';
 
 
 const HeadCategory = () => {
+  const [isBookmark, setIsBookmark] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isBookmark) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "auto"
+    }
+
+    return () => { document.body.style.overflow = "auto" }
+  }, [isBookmark]);
+
   return (
     <>
       <div className='w-full h-137.5 bg-dark lg:flex gap-x-2 hidden'>
@@ -26,7 +40,7 @@ const HeadCategory = () => {
                   <svg width="16" height="16" className='fill-white' viewBox="0 0 256 256"><path d="M208,28H188V24a12,12,0,0,0-24,0v4H92V24a12,12,0,0,0-24,0v4H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28ZM68,52a12,12,0,0,0,24,0h72a12,12,0,0,0,24,0h16V76H52V52ZM52,204V100H204V204Z"></path></svg>
                   <span className='text-white text-[13px]'>18 فروردین</span>
                 </div>
-                <button type="button" className='flex items-center gap-x-2 cursor-pointer'>
+                <button onClick={() => setIsBookmark(true)} type="button" className='flex items-center gap-x-2 cursor-pointer'>
                   <svg width="16" height="16" className='fill-white' viewBox="0 0 256 256"><path d="M184,28H72A20,20,0,0,0,52,48V224a12,12,0,0,0,18.36,10.18l57.63-36,57.65,36A12,12,0,0,0,204,224V48A20,20,0,0,0,184,28Zm-4,174.35-45.65-28.53a12,12,0,0,0-12.72,0L76,202.35V52H180Z"></path></svg>
                   <span className='text-white text-[13px]'>بوکمارک</span>
                 </button>
@@ -112,6 +126,15 @@ const HeadCategory = () => {
           </div>
         </div>
       </div>
+      {/* show bookmark */}
+      {
+        isBookmark && (
+          <Bookmark
+            onCancel={() => setIsBookmark(false)}
+          />
+        )
+      }
+      <div onClick={() => setIsBookmark(false)} className={`fixed bg-overview top-0 right-0 left-0 bottom-0 z-30 ${isBookmark ? "block" : "hidden"}`}></div>
     </>
   )
 };

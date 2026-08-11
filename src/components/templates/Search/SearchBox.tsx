@@ -1,7 +1,21 @@
+"use client"
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import Bookmark from '../Article/Bookmark';
 
 const SearchBox = () => {
+    const [isBookmark, setIsBookmark] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (isBookmark) {
+            document.body.style.overflow = "hidden"
+        } else {
+            document.body.style.overflow = "auto"
+        }
+
+        return () => { document.body.style.overflow = "auto" }
+    }, [isBookmark]);
+
     return (
         <div className='w-full pt-8 pb-2 xl:px-8 lg:px-4 px-2 container'>
             <div className="flex items-center justify-between">
@@ -54,7 +68,7 @@ const SearchBox = () => {
                                     <span className='pr-2 pl-2 block text-gray-400'>|</span>
                                     <span className='text-[13px] text-gray-400'>مطالعه '4</span>
                                 </div>
-                                <button type="button" className='cursor-pointer flex items-center gap-x-2'>
+                                <button onClick={() => setIsBookmark(true)} type="button" className='cursor-pointer flex items-center gap-x-2'>
                                     <svg xmlns="http://www.w3.org/2000/svg" className='fill-gray-400' width="16" height="16" fill="var(--grey-1)" viewBox="0 0 256 256"><path d="M184,28H72A20,20,0,0,0,52,48V224a12,12,0,0,0,18.36,10.18l57.63-36,57.65,36A12,12,0,0,0,204,224V48A20,20,0,0,0,184,28Zm-4,174.35-45.65-28.53a12,12,0,0,0-12.72,0L76,202.35V52H180Z"></path></svg>
                                     <span className='text-[13px] text-gray-400'>بوکمارک</span>
                                 </button>
@@ -67,6 +81,15 @@ const SearchBox = () => {
                     </button>
                 </div>
             </div>
+            {/* show bookmark */}
+            {
+                isBookmark && (
+                    <Bookmark
+                        onCancel={() => setIsBookmark(false)}
+                    />
+                )
+            }
+            <div onClick={() => setIsBookmark(false)} className={`fixed bg-overview top-0 right-0 left-0 bottom-0 z-30 ${isBookmark ? "block" : "hidden"}`}></div>
         </div>
     )
 }

@@ -6,10 +6,10 @@ const NavMenu = () => {
     <div className="mt-8 flex items-center justify-center shadow-[0px_0.2px_0px_0px_rgba(0,0,0,0.1)] shadow-white2 pb-2">
       <ul className='flex items-center gap-x-8 text-[14.5px]'>
         <li>
-          <button type="button" className='cursor-pointer flex flex-col items-center justify-center gap-y-1'>
+          <Link href="/userPanel" type="button" className='cursor-pointer flex flex-col items-center justify-center gap-y-1'>
             <svg width="16" height="16" fill="var(--grey-1)" viewBox="0 0 256 256"><path d="M212,76H32A12,12,0,0,0,20,88v48a100.24,100.24,0,0,0,26.73,68H32a12,12,0,0,0,0,24H208a12,12,0,0,0,0-24H193.27a100.75,100.75,0,0,0,20-32A44,44,0,0,0,256,128v-8A44.05,44.05,0,0,0,212,76Zm-16,60a76.27,76.27,0,0,1-42,68H86a76.27,76.27,0,0,1-42-68V100H196Zm36-8a20,20,0,0,1-12.57,18.55A97.17,97.17,0,0,0,220,136V101.68A20,20,0,0,1,232,120ZM68,48V24a12,12,0,0,1,24,0V48a12,12,0,0,1-24,0Zm40,0V24a12,12,0,0,1,24,0V48a12,12,0,0,1-24,0Zm40,0V24a12,12,0,0,1,24,0V48a12,12,0,0,1-24,0Z"></path></svg>
             <span>کجارو من</span>
-          </button>
+          </Link>
         </li>
         <li className="relative group">
           <button type="button" className='cursor-pointer flex flex-col items-center justify-center gap-y-1.5 fill-blueMenu'>
