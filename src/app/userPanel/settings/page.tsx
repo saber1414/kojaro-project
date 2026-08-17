@@ -1,10 +1,11 @@
-"use client"
 import AdsAbove from '@/components/modules/AdsAbove/AdsAbove'
+import Footer from '@/components/modules/Footer/Footer'
 import MobileNavbar from '@/components/modules/Header/MobileNavbar'
 import Navbar from '@/components/modules/Header/Navbar'
-import UserPanelBox from '@/components/templates/UserPanel/UserPanel'
+import Profile from '@/components/modules/UserPandel/Profile'
+import SettingsBox from '@/components/templates/UserPanel/Settings/SettingsBox'
 
-const userPanel = () => {
+const Settings = () => {
     return (
         <>
             <AdsAbove />
@@ -16,9 +17,14 @@ const userPanel = () => {
             <div className="w-full pt-4 pb-4 sticky top-0 z-20 bg-white shadow block lg:hidden">
                 <MobileNavbar />
             </div>
-            <UserPanelBox />
+            <Profile
+                title='تنظیمات'
+                description='در این صفحه می‌توانید تنظیمات مربوط به اعلانات، کامنت‌ها، اطلاعات کاربری، گذرواژه را مشاهده و تغییر دهید'
+            />
+            <SettingsBox />
+            <Footer />
         </>
     )
-};
+}
 
-export default userPanel;
+export default Settings;
