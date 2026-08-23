@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "پربازدیدترین رسانه گردشگری ایران",
@@ -18,7 +19,11 @@ export default function RootLayout({
       className="h-full antialiased rtl-enabled"
       suppressHydrationWarning
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

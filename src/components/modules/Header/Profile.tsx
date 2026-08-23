@@ -2,8 +2,21 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import Logout from '../Logout/Logout';
+import { User } from '@/types/user';
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { logout } from '@/features/auth/authSlice';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
-const Profile = () => {
+type GetMeProps = {
+    user: User
+}
+
+const Profile = ({ user }: GetMeProps) => {
+    const router = useRouter();
+    const dispatch = useAppDispatch();
+    const { isLoading } = useAppSelector(state => state.auth);
+
     const [showMenu, setShowMenu] = useState<boolean>(false);
     const [logoutBtn, setLogoutBtn] = useState<boolean>(false);
 
@@ -17,6 +30,25 @@ const Profile = () => {
         return () => { document.body.style.overflow = "auto" }
     }, [logoutBtn]);
 
+    const cancleLogoutSubmit = () => {
+        setLogoutBtn(false)
+    }
+
+    const logoutSubmit = async () => {
+        setLogoutBtn(true);
+
+        try {
+            await dispatch(logout()).unwrap(); 
+            toast.success("خارج شدید");
+            router.push("/signIn");
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || "خطا در خروج از حساب");
+        } finally {
+            setLogoutBtn(false);
+        }
+    };
+
     return (
         <>
             <div
@@ -25,14 +57,14 @@ const Profile = () => {
                 onMouseLeave={() => setShowMenu(false)}
             >
                 <Link href="/userPanel">
-                    <img src="/images/profile10.png" className='w-6 h-6' alt="profile img" />
+                    <img src={user?.image} className='w-6 h-6' alt="profile img" />
                 </Link>
                 <div className={`absolute left-0 top-5 bg-transparent p-4 w-83 h-111.25 ${showMenu ? "visible opacity-100" : " opacity-0 invisible"}`}>
                     <div className={`absolute left-0 top-5 transition-all duration-300 origin-top-right opacity-0 ${showMenu ? "visible opacity-100" : " opacity-0 invisible"}`}>
                         <div className="w-83  bg-white rounded-sm shadow shadow-gray-200 p-4">
                             <div className="flex items-center gap-x-4">
-                                <img src="/images/profile02.webp" className='w-12 h-12' alt="profile img" />
-                                <span className='font-IRANYekan-Bold text-[14px] pt-2'>saber__dev</span>
+                                <img src={user?.image} className='w-12 h-12' alt="profile img" />
+                                <span className='font-IRANYekan-Bold text-[14px] pt-2'>{user.username}</span>
                             </div>
                             <div className="mt-5 border border-gray-100 rounded-sm p-4">
                                 <div className="flex items-center justify-between">
@@ -81,7 +113,11 @@ const Profile = () => {
                 </div>
             </div>
             {
-                logoutBtn && <Logout onCancel={() => setLogoutBtn(false)} />
+                logoutBtn && <Logout
+                    onCancel={cancleLogoutSubmit}
+                    onClick={logoutSubmit}
+                    loading={isLoading}
+                />
             }
         </>
     )

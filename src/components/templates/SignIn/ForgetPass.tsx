@@ -14,7 +14,7 @@ const ForgetPassBox = () => {
                                 <label className='text-[13px] text-dark2 font-IRANYekan-Bold pb-2 block'>ایمیل یا شماره موبایلتان را وارد کنید</label>
                                 <input dir='ltr' type="text" className='w-full text-[14px] h-8 rounded-sm border border-gray-200 pl-2' />
                             </div>
-                            <button type="submit" className='w-full h-8 bg-dark2 text-white text-[13px] font-IRANYekan-Bold my-4 rounded-full flex items-center justify-center'>ادامه</button>
+                            <Link href="/verifyCode" className='w-full h-8 cursor-pointer bg-dark2 text-white text-[13px] font-IRANYekan-Bold my-4 rounded-full flex items-center justify-center'>ادامه</Link>
                         </form>
                     </div>
                     <span className='block w-full h-px bg-gray-200 mb-4'></span>

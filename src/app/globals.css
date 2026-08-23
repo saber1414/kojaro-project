@@ -36,7 +36,7 @@
   body {
     font-family: var(--font-IRANYekan-Meduim);
     font-size: 0.95rem;
-    background-color: var(--color-gray-bg) ;
+    background-color: var(--color-gray-bg);
     color: var(--color-dark);
   }
 
@@ -54,4 +54,60 @@
   .swiper-button-disabled svg {
     fill: #9ca3af !important;
   }
+
+  .submit-form {
+    width: 9.6px;
+    height: 9.6px;
+    background: #ffffff;
+    color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 16px 0, -16px 0;
+    animation: dots-u8fzftsm 1s infinite linear alternate;
+  }
+
+  @keyframes dots-u8fzftsm {
+    0% {
+      box-shadow: 16px 0, -16px 0;
+    }
+
+    33% {
+      box-shadow: 16px 0, -16px 0 rgba(255, 255, 255, 0.13);
+      background: rgba(255, 255, 255, 0.13);
+    }
+
+    66% {
+      box-shadow: 16px 0 rgba(255, 255, 255, 0.13), -16px 0;
+      background: rgba(255, 255, 255, 0.13);
+    }
+  }
+
+  .loading {
+    width: 56px;
+    height: 26.9px;
+    background: radial-gradient(circle closest-side, #1e88e5 90%, #0000) 0% 50%,
+      radial-gradient(circle closest-side, #1e88e5 90%, #0000) 50% 50%,
+      radial-gradient(circle closest-side, #1e88e5 90%, #0000) 100% 50%;
+    background-size: calc(100%/3) 13.4px;
+    background-repeat: no-repeat;
+    animation: dots-7ar3yq 1s infinite linear;
+  }
+
+  @keyframes dots-7ar3yq {
+    20% {
+      background-position: 0% 0%, 50% 50%, 100% 50%;
+    }
+
+    40% {
+      background-position: 0% 100%, 50% 0%, 100% 50%;
+    }
+
+    60% {
+      background-position: 0% 50%, 50% 100%, 100% 0%;
+    }
+
+    80% {
+      background-position: 0% 50%, 50% 50%, 100% 100%;
+    }
+  }
+
 }

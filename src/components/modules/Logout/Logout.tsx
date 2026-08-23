@@ -1,10 +1,12 @@
 import React from 'react'
 
 type LogoutProps = {
-    onCancel: () => void
+    onCancel: () => void;
+    onClick: () => void;
+    loading: boolean
 }
 
-const Logout = ({onCancel}:LogoutProps) => {
+const Logout = ({ onCancel, onClick, loading }: LogoutProps) => {
     return (
         <>
             <div onClick={onCancel} className="fixed z-50 right-0 left-0 top-0 bottom-0 bg-overview">
@@ -16,9 +18,11 @@ const Logout = ({onCancel}:LogoutProps) => {
                         <h5 className="font-IRANYekan-Bold">خروج از حساب کاربری</h5>
                         <span className='text-[14px] font-IRANYekan-Light'>آیا می‌خواهید از حساب کاربری خود خارج شوید؟</span>
                     </div>
-                    <div onClick={onCancel} className="mt-10 flex items-center justify-center gap-x-2">
-                        <button className='h-8 font-IRANYekan-Bold px-4 bg-dark2 text-white text-[13px] cursor-pointer rounded-full' type='button'>بله خارج می‌شوم</button>
-                        <button type="button" className='h-8 w-31 font-IRANYekan-Bold px-4 text-[13px] border border-gray-200 rounded-full cursor-pointer'>انصراف</button>
+                    <div className="mt-10 flex items-center justify-center gap-x-2">
+                        <button onClick={onClick} className='h-8 font-IRANYekan-Bold px-4 bg-dark2 text-white text-[13px] cursor-pointer rounded-full' type='button'>
+                            {loading ? <div className="submit-form"></div> : "بله خارج می‌شوم"}
+                        </button>
+                        <button onClick={onCancel} type="button" className='h-8 w-31 font-IRANYekan-Bold px-4 text-[13px] border border-gray-200 rounded-full cursor-pointer'>انصراف</button>
                     </div>
                 </div>
             </div>
