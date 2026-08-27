@@ -61,3 +61,53 @@ export const setPasswordSchema = yup.object().shape({
         .required("تکرار رمز عبور الزامی است")
         .oneOf([yup.ref('password')], "رمز عبور و تکرار آن مطابقت ندارند"),
 });
+
+export const userSchema = yup.object().shape({
+    fullname: yup
+        .string()
+        .trim()
+        .min(3, "نام باید حداقل ۳ کاراکتر باشد")
+        .max(20, "نام حداکثر ۲۰ کاراکتر")
+        .nullable()
+        .optional(),
+    username: yup
+        .string()
+        .trim()
+        .lowercase()
+        .min(3, "یوزرنیم حداقل ۳ کاراکتر")
+        .max(20, "یوزرنیم حداکثر ۲۰ کاراکتر")
+        .matches(
+            /^[a-z0-9._]+$/,
+            "یوزرنیم فقط حروف کوچک، عدد، نقطه و خط زیر"
+        )
+        .nullable()
+        .optional(),
+    bio: yup.string().trim().max(200).nullable().optional(),
+    city: yup.string().trim().max(50).nullable().optional(),
+    dateOfBirth: yup.string().nullable().optional(),
+    email: yup
+        .string()
+        .email("ایمیل معتبر نیست")
+        .nullable()
+        .optional(),
+    phone: yup
+        .string()
+        .matches(/^09\d{9}$/, "شماره موبایل باید به فرمت 09XXXXXXXXX باشد")
+        .nullable()
+        .optional(),
+    website: yup
+        .string()
+        .trim()
+        .url("آدرس وب‌سایت معتبر نیست")
+        .nullable()
+        .optional(),
+    socialLinks: yup
+        .object({
+            instagram: yup.string().trim().nullable().optional(),
+            twitter: yup.string().trim().nullable().optional(),
+            telegram: yup.string().trim().nullable().optional(),
+            linkedin: yup.string().trim().nullable().optional(),
+        })
+        .nullable()
+        .optional(),
+});

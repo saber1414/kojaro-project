@@ -15,7 +15,7 @@ export interface IUser extends Document {
     hasPassword: boolean;
     emailVerified: boolean;
     phoneVerified: boolean;
-    role: 'user' | 'admin' | 'moderator';
+    role: 'user' | 'admin' | 'moderator' | 'author';
     lastLogin?: Date;
     bio?: string;
     website?: string;
