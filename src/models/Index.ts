@@ -5,6 +5,7 @@ import ArticleModle from "./Article";
 import ListModel from "./List";
 import BannerModel from "./Banner";
 import AdvertisementModel from "./Advertisement";
+import CommentModel from "./Comment";
 
 export const User = UserModel;
 export const OTP = OTPModel;
@@ -13,3 +14,4 @@ export const Article = ArticleModle;
 export const List = ListModel;
 export const Banner = BannerModel;
 export const Advertisement = AdvertisementModel;
+export const Comment = CommentModel;

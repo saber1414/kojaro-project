@@ -2,7 +2,7 @@ import ConnectedDB from "@/lib/db";
 import { authenticate } from "@/middlewares/auth";
 import { calculateReadingTime } from "@/utils/calculateReadingTime";
 import { sanitizeContent } from "@/utils/sanitize";
-import { Article, Category } from "@/models/Index";
+import { Article, Category, Comment } from "@/models/Index";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
@@ -12,10 +12,12 @@ import { articleSchema } from "@/validations/articleSchema";
 
 const isObjectId = (value: string) => Types.ObjectId.isValid(value);
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ param: string }> }) {
+export async function GET(
+    req: NextRequest,
+    { params }: { params: Promise<{ param: string }> }
+) {
     try {
         await ConnectedDB();
-
         const { param } = await params;
 
         let article;
@@ -25,51 +27,97 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ para
                 .populate("author", "fullname username image")
                 .populate("category", "name slug icon")
                 .select("-__v")
-                .lean()
+                .lean();
         } else {
             article = await Article.findOne({ slug: param })
                 .populate("author", "fullname username image")
                 .populate("category", "name slug icon")
                 .select("-__v")
-                .lean()
+                .lean();
         };
 
         if (!article) {
-            return NextResponse.json({
-                success: false,
-                message: "مقاله یافت نشد"
-            }, { status: 404 })
+            return NextResponse.json(
+                { success: false, message: "مقاله یافت نشد" },
+                { status: 404 }
+            );
         };
 
-        const user = await authenticate(req).catch(() => { });
+        const user = await authenticate(req).catch(() => null);
 
         if (article.status !== "published") {
-            if (!user || (user.role !== "admin" && user._id.toString() !== article.author._id.toString())) {
-                return NextResponse.json({
-                    success: false,
-                    message: "مقاله یافت نشد"
-                }, { status: 400 })
+            const authorId =
+                typeof article.author === "object"
+                    ? article.author._id?.toString()
+                    : article.author?.toString();
+
+            if (
+                !user ||
+                (user.role !== "admin" && user._id.toString() !== authorId)
+            ) {
+                return NextResponse.json(
+                    { success: false, message: "مقاله یافت نشد" },
+                    { status: 404 }
+                );
             }
         };
+
+        const comments = await Comment.find({
+            article: article._id,
+            parentComment: null,
+            status: "approved",
+            isDeleted: false,
+        })
+            .sort({ isPinned: -1, createdAt: -1 })
+            .populate("author", "fullname username image role")
+            .lean();
+
+        const commentIds = comments.map((c) => c._id);
+        const replies = await Comment.find({
+            parentComment: { $in: commentIds },
+            status: "approved",
+            isDeleted: false,
+        })
+            .sort({ createdAt: 1 })
+            .populate("author", "fullname username image role")
+            .lean();
+
+        const repliesMap = new Map<string, any[]>();
+        for (const reply of replies) {
+            const key = reply.parentComment?.toString();
+            if (!key) continue;
+            if (!repliesMap.has(key)) repliesMap.set(key, []);
+            repliesMap.get(key)!.push(reply);
+        }
+
+        const commentsTree = comments.map((c) => ({
+            ...c,
+            replies: repliesMap.get(c._id.toString()) || [],
+        }));
 
         if (article.status === "published") {
             await Article.findByIdAndUpdate(article._id, { $inc: { views: 1 } });
             article.views += 1;
         };
 
-        return NextResponse.json({
-            success: true,
-            data: article
-        }, { status: 200 })
-
+        return NextResponse.json(
+            {
+                success: true,
+                data: {
+                    ...article,
+                    comments: commentsTree,
+                },
+            },
+            { status: 200 }
+        );
     } catch (err: any) {
-        return NextResponse.json({
-            success: false,
-            message: "خطا در دریافت مقاله",
-            error: err
-        }, { status: 500 })
+        console.error("Get article error =>", err);
+        return NextResponse.json(
+            { success: false, message: "خطا در دریافت مقاله" },
+            { status: 500 }
+        );
     }
-};
+}
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ param: string }> }) {
     try {

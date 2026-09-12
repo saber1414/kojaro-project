@@ -4,6 +4,7 @@ import userReducer from "./users/users";
 import articlesReducer from "./articles/articles";
 import listsReducer from "./lists/lists";
 import bannersReducer from "./banners/banners";
+import commentsReducer from "./comments/comments";
 
 export const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
         articles: articlesReducer,
         lists: listsReducer,
         banners: bannersReducer,
+        comments: commentsReducer
     },
     devTools: process.env.NODE_ENV !== "production"
 });

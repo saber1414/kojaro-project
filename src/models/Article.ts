@@ -9,6 +9,7 @@ export interface IArticle extends Document {
     coverImagePublicId?: string | null;
     author: Types.ObjectId;
     category: Types.ObjectId;
+    comments: Types.ObjectId[];
     tags?: string[];
     status: "draft" | "published" | "archived";
     isFeatured: boolean;
@@ -64,6 +65,10 @@ const schema: Schema<IArticle> = new Schema({
         ref: "Category",
         required: true,
     },
+    comments: [{
+        type: Schema.Types.ObjectId,
+        ref: "Comment",
+    }],
     tags: {
         type: [String],
         default: [],
@@ -106,6 +111,7 @@ const schema: Schema<IArticle> = new Schema({
 schema.index({ slug: 1 });
 schema.index({ status: 1, published: 1 });
 schema.index({ category: 1 });
+schema.index({ comments: 1 });
 schema.index({ author: 1 });
 schema.index({ isFeatured: 1 });
 schema.index({ tags: 1 });
