@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
                     page,
                     limit,
                     totalPages: Math.ceil(total / limit),
-                    hasPrevPage: page * limit < total,
+                    hasPrevPages: page * limit < total,
                     hasNextPages: page > 1
                 }
             }
