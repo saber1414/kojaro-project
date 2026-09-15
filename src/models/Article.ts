@@ -9,6 +9,7 @@ export interface IArticle extends Document {
     coverImagePublicId?: string | null;
     author: Types.ObjectId;
     category: Types.ObjectId;
+    articleCategory: Types.ObjectId;
     comments: Types.ObjectId[];
     tags?: string[];
     status: "draft" | "published" | "archived";
@@ -64,6 +65,11 @@ const schema: Schema<IArticle> = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Category",
         required: true,
+    },
+    articleCategory: {
+        type: Schema.Types.ObjectId,
+        ref: "ArticleCategory",
+        required: true
     },
     comments: [{
         type: Schema.Types.ObjectId,

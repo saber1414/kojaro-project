@@ -7,6 +7,7 @@ import BannerModel from "./Banner";
 import AdvertisementModel from "./Advertisement";
 import CommentModel from "./Comment";
 import ArticleCategoryModel from "./ArticleCategory";
+import FollowModel from "./Follow";
 
 export const User = UserModel;
 export const OTP = OTPModel;
@@ -17,3 +18,4 @@ export const Banner = BannerModel;
 export const Advertisement = AdvertisementModel;
 export const Comment = CommentModel;
 export const ArticleCategory = ArticleCategoryModel;
+export const Follow = FollowModel;

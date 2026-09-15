@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
         const excerpt = formData.get("excerpt") as string | null;
         const content = formData.get("content") as string | null;
         const category = formData.get("category") as string | null;
+        const articleCategory = formData.get("articleCategory") as string | null;
         const status = (formData.get("status") as string) || "draft";
         const isFeatured = formData.get("isFeatured") === "true";
         const metaTitle = formData.get("metaTitle") as string | null;
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
             excerpt: excerpt?.trim() || null,
             content: cleanContent,
             category,
+            articleCategory,
             tags,
             status,
             isFeatured,
@@ -141,6 +143,7 @@ export async function POST(req: NextRequest) {
         const populated = await Article.findById(article._id)
             .populate("author", "fullname username image")
             .populate("category", "name slug icon")
+            .populate("articleCategory", "name slug")
             .select("-__v")
             .lean()
 
@@ -209,6 +212,7 @@ export async function GET(req: NextRequest) {
         const articles = await Article.find(query)
             .populate("author", "fullname username image")
             .populate("category", "name slug icon")
+            .populate("articleCategory", "name slug")
             .select("-__v")
             .limit(limit)
             .sort(sortOption)
@@ -303,7 +307,7 @@ export async function DELETE(req: NextRequest) {
         for (const article of articlesToDelete) {
             if (article.coverImage) {
                 const oldPath = path.join(process.cwd(), "public", article.coverImage);
-                return await fs.unlink(oldPath).catch(() => { });
+                await fs.unlink(oldPath).catch(() => { });
             }
         };
 
@@ -321,9 +325,11 @@ export async function DELETE(req: NextRequest) {
         }, { status: 200 })
 
     } catch (err: any) {
+        console.log("Error Delete Articles =>", err)
         return NextResponse.json({
             success: false,
-            message: "خطا در حذف مقالات"
+            message: "خطا در حذف مقالات",
+            errors: err
         }, { status: 500 })
     }
 };

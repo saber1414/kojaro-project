@@ -26,12 +26,14 @@ export async function GET(
             article = await Article.findById(param)
                 .populate("author", "fullname username image")
                 .populate("category", "name slug icon")
+                .populate("articleCategory", "name slug")
                 .select("-__v")
                 .lean();
         } else {
             article = await Article.findOne({ slug: param })
                 .populate("author", "fullname username image")
                 .populate("category", "name slug icon")
+                .populate("articleCategory", "name slug")
                 .select("-__v")
                 .lean();
         };
@@ -117,7 +119,7 @@ export async function GET(
             { status: 500 }
         );
     }
-}
+};
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ param: string }> }) {
     try {
@@ -161,6 +163,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ para
         const excerpt = formData.get("excerpt") as string | null;
         const content = formData.get("content") as string | null;
         const category = formData.get("category") as string | null;
+        const articleCategory = formData.get("articleCategory") as string | null;
         const status = formData.get("status") as string | null;
         const isFeaturedRaw = formData.get("isFeatured");
         const metaTitle = formData.get("metaTitle") as string | null;
@@ -184,6 +187,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ para
             updatedData.readingTime = calculateReadingTime(content)
         };
         if (category) updatedData.category = category;
+        if (articleCategory) updatedData.articleCategory = articleCategory;
         if (status && ["draft", "published", "archived"].includes(status)) {
             updatedData.status = status;
             if (status === "published" || article.status !== "published") {
@@ -242,6 +246,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ para
                     slug: updatedData.slug ?? article.slug,
                     content: updatedData.content ?? article.content,
                     category: updatedData.category ?? article.category.toString(),
+                    articleCategory: updatedData.articleCategory ?? article.articleCategory.toString(),
                     status: updatedData.status ?? article.status,
                 },
                 { abortEarly: false }
@@ -272,6 +277,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ para
         })
             .populate("author", "fullname username image")
             .populate("category", "name slug icon")
+            .populate("articleCategory", "name slug")
             .select("-__v")
             .lean();
 
