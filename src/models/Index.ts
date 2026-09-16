@@ -8,6 +8,7 @@ import AdvertisementModel from "./Advertisement";
 import CommentModel from "./Comment";
 import ArticleCategoryModel from "./ArticleCategory";
 import FollowModel from "./Follow";
+import BookmarkModel from "./Bookmark";
 
 export const User = UserModel;
 export const OTP = OTPModel;
@@ -19,3 +20,4 @@ export const Advertisement = AdvertisementModel;
 export const Comment = CommentModel;
 export const ArticleCategory = ArticleCategoryModel;
 export const Follow = FollowModel;
+export const Bookmark = BookmarkModel;

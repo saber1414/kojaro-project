@@ -6,6 +6,7 @@ import listsReducer from "./lists/lists";
 import bannersReducer from "./banners/banners";
 import commentsReducer from "./comments/comments";
 import followsReducer from "./follows/follows";
+import bookmarksReducer from "./bookmarks/bookmarks";
 
 export const store = configureStore({
     reducer: {
@@ -15,7 +16,8 @@ export const store = configureStore({
         lists: listsReducer,
         banners: bannersReducer,
         comments: commentsReducer,
-        follows: followsReducer
+        follows: followsReducer,
+        bookmarks: bookmarksReducer,
     },
     devTools: process.env.NODE_ENV !== "production"
 });
