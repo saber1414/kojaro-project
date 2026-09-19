@@ -2,7 +2,7 @@ import ConnectedDB from "@/lib/db";
 import { authenticate } from "@/middlewares/auth";
 import { calculateReadingTime } from "@/utils/calculateReadingTime";
 import { sanitizeContent } from "@/utils/sanitize";
-import { Article, Category, Comment } from "@/models/Index";
+import { Article, ArticleReaction, Category, Comment } from "@/models/Index";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
@@ -64,6 +64,18 @@ export async function GET(
             }
         };
 
+        let userReaction: "like" | "dislike" | null = null;
+        if (user) {
+            const reaction = await ArticleReaction.findOne({
+                user: user._id,
+                article: article._id
+            })
+                .select("type")
+                .lean();
+
+            userReaction = reaction?.type ?? null;
+        }
+
         const comments = await Comment.find({
             article: article._id,
             parentComment: null,
@@ -108,6 +120,9 @@ export async function GET(
                 data: {
                     ...article,
                     comments: commentsTree,
+                    likeCount: article.likeCount ?? 0,
+                    dislikeCount: article.dislikeCount ?? 0,
+                    userReaction,
                 },
             },
             { status: 200 }

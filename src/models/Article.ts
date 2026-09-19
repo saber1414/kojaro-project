@@ -10,6 +10,8 @@ export interface IArticle extends Document {
     author: Types.ObjectId;
     category: Types.ObjectId;
     articleCategory: Types.ObjectId;
+    likeCount: number;
+    dislikeCount: number;
     comments: Types.ObjectId[];
     tags?: string[];
     status: "draft" | "published" | "archived";
@@ -70,6 +72,14 @@ const schema: Schema<IArticle> = new Schema({
         type: Schema.Types.ObjectId,
         ref: "ArticleCategory",
         required: true
+    },
+    likeCount: {
+        type: Number,
+        default: 0,
+    },
+    dislikeCount: {
+        type: Number,
+        default: 0,
     },
     comments: [{
         type: Schema.Types.ObjectId,

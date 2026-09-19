@@ -2,7 +2,7 @@ import { Schema, Document, Types, models, model } from "mongoose";
 
 export interface IBookmark extends Document {
     note: string,
-    articles: Types.ObjectId[];
+    articles?: Types.ObjectId[];
     user: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
@@ -19,7 +19,6 @@ const schema: Schema<IBookmark> = new Schema({
     articles: [{
         type: Schema.Types.ObjectId,
         ref: "Article",
-        required: true
     }],
     user: {
         type: Schema.Types.ObjectId,

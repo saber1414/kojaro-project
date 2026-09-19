@@ -13,8 +13,8 @@ export interface Bookmark {
         image?: string,
         fullname?: string
     },
-    note?if(): string,
-    createdAt?if(): string,
-    updatedAt?if(): string,
-    articlesCount?if(): number
+    note?: string,
+    createdAt?: string,
+    updatedAt?: string,
+    articlesCount?: number
 };
