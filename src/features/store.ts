@@ -7,7 +7,8 @@ import bannersReducer from "./banners/banners";
 import commentsReducer from "./comments/comments";
 import followsReducer from "./follows/follows";
 import bookmarksReducer from "./bookmarks/bookmarks";
-import articleReactionReducer from "./articleReaction/articleReaction"
+import articleReactionReducer from "./articleReaction/articleReaction";
+import relatedArticlesReducer from "./relatedArticles/relatedArticles";
 
 export const store = configureStore({
     reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
         follows: followsReducer,
         bookmarks: bookmarksReducer,
         articleReaction: articleReactionReducer,
+        relatedArticles: relatedArticlesReducer,
     },
     devTools: process.env.NODE_ENV !== "production"
 });
