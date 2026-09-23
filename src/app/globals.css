@@ -14,8 +14,11 @@
   --color-gray-bg: #f9f9f9;
   --color-gray-5: rgb(255 255 255 / 30%);
   --color-gray-text: #767676;
+  --color-gray-icon: #718096;
   --color-gray-10: #e8e8ea;
   --color-overview: rgba(0, 0, 0, 0.40);
+  --color-gray-12: #f8f9fa;
+  --color-green-1: #3BCBBE;
 }
 
 @layer base {
@@ -65,6 +68,10 @@
     animation: dots-u8fzftsm 1s infinite linear alternate;
   }
 
+  .main {
+    grid-area: main;
+  }
+
   @keyframes dots-u8fzftsm {
     0% {
       box-shadow: 16px 0, -16px 0;
@@ -110,4 +117,25 @@
     }
   }
 
+}
+
+@layer utilities {
+  .grid-template {
+    grid-template-areas: "aside header" "aside main";
+  }
+
+  .header {
+    grid-area: header;
+    padding: 1rem;
+  }
+
+  .aside {
+    grid-area: aside;
+    padding: 1rem;
+  }
+
+  .main {
+    grid-area: main;
+    padding: 1rem;
+  }
 }
