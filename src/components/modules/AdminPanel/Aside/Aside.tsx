@@ -1,7 +1,7 @@
 "use client"
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const Aside = () => {
     const pathname = usePathname();
@@ -44,7 +44,7 @@ const Aside = () => {
             ),
             subMenu: [
                 { name: "کاربران", href: "/adminPanel/users" },
-                { name: "نویسندگان", href: "/adminPanel/author" }
+                { name: "نویسندگان", href: "/adminPanel/authors" }
             ]
         },
         {
@@ -217,7 +217,7 @@ const Aside = () => {
                                             <div className="mb-6 transition-all ease-in flex mr-5 flex-col gap-4 border-r border-orange-400 pr-3">
                                                 {
                                                     item.subMenu.map((menu) =>
-                                                        <Link href={menu.href} key={menu.href} className={`block leading-5 ${pathname === menu.href ? " after:absolute after:w-0.5 after:h-4 after:bg-amber-600 after:-right-3.5" : "text-gray-25"} text-sm relative text-[13px]`}>{menu.name}</Link>
+                                                        <Link href={menu.href} key={menu.href} className={`block leading-5 ${pathname === menu.href ? " after:absolute after:w-0.5 after:h-4 after:bg-green-1 after:right-[-13.5px]" : "text-gray-25"} text-sm relative text-[13px]`}>{menu.name}</Link>
                                                     )
                                                 }
                                             </div>

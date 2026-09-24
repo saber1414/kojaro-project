@@ -1,4 +1,3 @@
-import React from 'react'
 import MonthlyIncomeChart from '../Chart/MonthlyIncomeChart';
 import ActiveUserChart from '../Chart/ActiveUserChart';
 import TopAuthors from '../TopAuthors/TopAuthors';

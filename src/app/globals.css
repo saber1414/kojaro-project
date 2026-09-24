@@ -19,6 +19,8 @@
   --color-overview: rgba(0, 0, 0, 0.40);
   --color-gray-12: #f8f9fa;
   --color-green-1: #3BCBBE;
+  --color-purple-1: #311E61;
+  --color-orange-1: #3B3736;
 }
 
 @layer base {
