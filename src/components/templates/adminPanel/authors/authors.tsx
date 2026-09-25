@@ -1,6 +1,99 @@
-import React from 'react'
+"use client"
+import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
+import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
+import React, { useMemo, useState } from 'react'
+
+const users = [
+    { _id: 1, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "author" },
+    { _id: 2, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
+    { _id: 3, name: "علی احمدی", username: "ali_ahmadi", email: "ali.ahmadi001@gmail.com", phone: "09215598741", role: "user" },
+    { _id: 4, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
+    { _id: 5, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
+    { _id: 6, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
+    { _id: 7, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
+    { _id: 8, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "author" },
+    { _id: 9, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
+    { _id: 10, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "author" },
+    { _id: 11, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
+    { _id: 12, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
+    { _id: 13, name: "--", username: "saberd", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
+];
 
 const AuthorList = () => {
+    const authors = useMemo(() =>
+        users.filter((author) => author.role === "author"),
+        [users]
+    );
+    const [page, setPage] = useState<number>(1);
+    const [limit, setLimit] = useState<number>(10);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+    const [deleteModal, setDeleteModal] = useState<boolean>(false);
+
+    const total = authors.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const currentPage = Math.min(page, totalPages);
+
+    const paginatedAuthros = useMemo(() => {
+        const start = (currentPage - 1) * limit;
+        return authors.slice(start, start + limit);
+    }, [authors, currentPage, limit]);
+
+    const startItem = total === 0 ? 0 : (currentPage - 1) * limit + 1;
+    const endItem = Math.min(currentPage * limit, total);
+
+    const goPrev = () => setPage((page) => Math.max(1, page - 1));
+    const goNext = () => setPage((page) => Math.min(totalPages, page + 1));
+
+    const limitOptions = useMemo(() => {
+        const totalCount = authors.length;
+        if (totalCount <= 0) return [10];
+
+        const base = [5, 10, 20, 50];
+        const options = base.filter((n) => n < totalCount);
+
+        if (!options.includes(totalCount)) options.push(totalCount);
+
+        return options.length ? options : [totalCount]
+    }, [authors.length]);
+
+    const handleLimitChange = (value: number) => {
+        setLimit(value);
+        setPage(1)
+    };
+
+    const pageIds = useMemo(() =>
+        paginatedAuthros.map((auhtor) => auhtor._id),
+        [paginatedAuthros]
+    );
+
+    const isAllPageSelected = pageIds.length > 0 && pageIds.every((_id) => selectedIds.includes(_id));
+    const isSomePageSlected = pageIds.some((_id) => selectedIds.includes(_id) && !isAllPageSelected);
+
+    const toggleSelectedOne = (_id: number) => {
+        setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
+    };
+
+    const toggleSelectAllPage = () => {
+        if (isAllPageSelected) {
+            setSelectedIds((prev) => prev.filter((_id) => !pageIds.includes(_id)))
+        } else {
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...pageIds])))
+        }
+    };
+
+    const deleteAllHandel = async () => {
+        console.log('delete all')
+    };
+
+    const confirmSubmitHandle = async () => {
+        console.log("delete",)
+    };
+
+    const operationCancelled = () => {
+        setDeleteModal(false)
+    };
+
     return (
         <>
             <div className="flex items-center justify-between">
@@ -107,8 +200,179 @@ const AuthorList = () => {
                     </div>
                 </div>
             </div>
+            {/* table */}
+            <div className="mt-10 bg-white p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-x-4">
+                        <h4 className='text-[14px] font-IRANYekan-Bold'>کل نویسندگان</h4>
+                        <button
+                            type="button"
+                            onClick={deleteAllHandel}
+                            className={`
+                                    cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
+                                    ${selectedIds.length > 0 ? "flex" : "hidden"}
+                                    `}>
+                            حذف انتخابی ها ({selectedIds.length})
+                        </button>
+                    </div>
+                    <div className="flex gap-x-2 text-[13px]">
+                        <span className='text-green-1'>{startItem}-{endItem}</span>
+                        از
+                        <span>{total}</span>
+                    </div>
+                </div>
+                <span className='w-full h-px bg-gray-10 mt-5 block'></span>
+                {/* table */}
+                {
+                    users.length ? (
+                        <div className="mt-5">
+                            <div className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2">
+                                <div className="flex items-center justify-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={isAllPageSelected}
+                                        onChange={toggleSelectAllPage}
+                                        ref={(el) => {
+                                            if (el) el.indeterminate = isSomePageSlected
+                                        }}
+                                        className='w-4 h-4 rounded border-gray-300 accent-green-1 cursor-pointer' />
+                                </div>
+                                <div>ردیف</div>
+                                <div>نام و نام خانوادگی</div>
+                                <div>نام کاربری</div>
+                                <div>ایمیل</div>
+                                <div>تلفن</div>
+                                <div>وضعیت</div>
+                            </div>
+                            {
+                                paginatedAuthros.map((user, index) => (
+                                    <div key={user._id} className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-50 rounded-lg py-4 mb-2">
+                                        <div className="flex items-center justify-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(user._id)}
+                                                onChange={() => toggleSelectedOne(user._id)}
+                                                className='w-4 h-4 rounded accent-green-1 border-gray-300 cursor-pointer' />
+                                        </div>
+                                        <div>{index + 1}</div>
+                                        <div>{user.name}</div>
+                                        <div>{user.username}</div>
+                                        <div>{user.email}</div>
+                                        <div>{user.phone}</div>
+                                        <div className='flex items-center justify-center gap-x-2'>
+                                            <button
+                                                type="button"
+                                                className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
+                                                <svg
+                                                    width='16'
+                                                    height='16'
+                                                    fill='none'
+                                                    viewBox='0 0 13 13'
+                                                >
+                                                    <path
+                                                        fill='#1e88e5'
+                                                        stroke='#1e88e5'
+                                                        strokeLinecap='round'
+                                                        strokeLinejoin='round'
+                                                        d='M11.065 1.03a1.82 1.82 0 0 0-2.585.018L1.618 7.91a2 2 0 0 0-.524.918l-.58 2.267a.4.4 0 0 0 .486.487L3.268 11a2 2 0 0 0 .917-.523l6.863-6.862a1.817 1.817 0 0 0 .017-2.585'
+                                                    ></path>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDeleteModal(true)}
+                                                className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
+                                                <svg
+                                                    width='16'
+                                                    height='16'
+                                                    fill='currentColor'
+                                                    className='bi bi-trash-fill fill-red-500'
+                                                    viewBox='0 0 16 16'
+                                                >
+                                                    <path d='M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0'></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    ) : (
+                        <EmptyPage name='نویسنده' text='نویسندگان' />
+                    )
+                }
+                <div className="flex items-center justify-between mt-5">
+                    <div className="flex gap-x-2 text-[13px]">
+                        <span className='text-green-1'>{startItem}-{endItem}</span>
+                        از
+                        <span>{total}</span>
+                    </div>
+                    <div className="flex items-center gap-x-6">
+                        <div className="flex items-center gap-x-2">
+                            <button
+                                type="button"
+                                onClick={goNext}
+                                disabled={currentPage >= totalPages}
+                                className='cursor-pointer w-7 h-7 bg-gray-10 rounded-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed'>
+                                <svg
+                                    width='16'
+                                    height='16'
+                                    fill='currentColor'
+                                    className='bi bi-arrow-right'
+                                    viewBox='0 0 16 16'
+                                >
+                                    <path
+                                        fillRule='evenodd'
+                                        d='M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8'
+                                    ></path>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={goPrev}
+                                disabled={currentPage <= 1}
+                                className='cursor-pointer w-7 h-7 bg-gray-10 rounded-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed'>
+                                <svg
+                                    width='16'
+                                    height='16'
+                                    fill='currentColor'
+                                    className='bi bi-arrow-left'
+                                    viewBox='0 0 16 16'
+                                >
+                                    <path
+                                        fillRule='evenodd'
+                                        d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8'
+                                    ></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-x-2">
+                            <span className='text-[13px]'>تعداد ردیف در هر صفحه:</span>
+                            <select
+                                value={limit}
+                                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                                className='w-13 h-7 rounded-sm text-[13px] font-IRANYekan-Bold bg-gray-10'>
+                                {
+                                    limitOptions.map((opt) => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {
+                deleteModal && (
+                    <DeleteModal 
+                        confirmBtn={confirmSubmitHandle}
+                        closeBtn={operationCancelled}
+                        text='نویسنده'
+                    />
+                )
+            }
         </>
     )
 }
 
-export default AuthorList
+export default AuthorList;

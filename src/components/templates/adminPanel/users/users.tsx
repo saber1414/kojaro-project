@@ -6,39 +6,54 @@ import TableSkeleton from "@/components/modules/AdminPanel/TableSkeleton/TableSk
 import { useMemo, useState } from "react";
 
 const users = [
-    { _id: 1, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645" },
-    { _id: 2, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 3, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645" },
-    { _id: 4, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 5, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645" },
-    { _id: 6, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 7, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 8, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645" },
-    { _id: 9, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 10, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645" },
-    { _id: 11, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
+    { _id: 1, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
+    { _id: 2, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
+    { _id: 3, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
+    { _id: 4, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
+    { _id: 5, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
+    { _id: 6, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
+    { _id: 7, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
+    { _id: 8, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "user" },
+    { _id: 9, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
+    { _id: 10, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "user" },
+    { _id: 11, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
 ];
 
 const UserList = () => {
+    const allUsers = useMemo(() =>
+        users.filter((user) => user.role === "user"),
+        [users]
+    );
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const total = users.length;
+    const total = allUsers.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const currentPage = Math.min(page, totalPages);
 
     const paginatedUsers = useMemo(() => {
         const start = (currentPage - 1) * limit;
-        return users.slice(start, start + limit)
-    }, [users, currentPage, limit]);
+        return allUsers.slice(start, start + limit)
+    }, [allUsers, currentPage, limit]);
 
     const startItem = total === 0 ? 0 : (currentPage - 1) * limit + 1;
     const endItem = Math.min(currentPage * limit, total);
 
     const goPrev = () => setPage((page) => Math.max(1, page - 1));
     const goNext = () => setPage((page) => Math.min(totalPages, page + 1));
+
+    const limitOptions = useMemo(() => {
+        const totalCount = allUsers.length;
+        if (totalCount <= 0) return [10];
+
+        const base = [5, 10, 20, 50];
+        const options = base.filter((n) => n < totalCount);
+        if (!options.includes(totalCount)) options.push(totalCount);
+
+        return options.length ? options : [totalCount];
+    }, [allUsers.length]);
 
     const handleLimitChange = (value: number) => {
         setLimit(value);
@@ -65,7 +80,7 @@ const UserList = () => {
         }
     };
 
-    const deleteModalHandel = async () => {
+    const confirmSubmitHandle = async () => {
         console.log('click')
     };
 
@@ -286,7 +301,7 @@ const UserList = () => {
                                 </div>
                                 <div className="flex items-center gap-x-6">
                                     <div className="flex items-center gap-x-2">
-                                        <button type="button" onClick={goPrev} disabled={currentPage <= 1} className='cursor-pointer w-7 h-7 bg-gray-10 rounded-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed'>
+                                        <button type="button" onClick={goNext} disabled={currentPage >= totalPages} className='cursor-pointer w-7 h-7 bg-gray-10 rounded-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed'>
                                             <svg
                                                 width='16'
                                                 height='16'
@@ -300,7 +315,7 @@ const UserList = () => {
                                                 ></path>
                                             </svg>
                                         </button>
-                                        <button type="button" onClick={goNext} disabled={currentPage >= totalPages} className='cursor-pointer w-7 h-7 bg-gray-10 rounded-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed'>
+                                        <button type="button" onClick={goPrev} disabled={currentPage <= 1} className='cursor-pointer w-7 h-7 bg-gray-10 rounded-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed'>
                                             <svg
                                                 width='16'
                                                 height='16'
@@ -318,8 +333,11 @@ const UserList = () => {
                                     <div className="flex items-center gap-x-2">
                                         <span className='text-[13px]'>تعداد ردیف در هر صفحه:</span>
                                         <select value={limit} onChange={(e) => handleLimitChange(Number(e.target.value))} className='w-13 h-7 rounded-sm text-[13px] font-IRANYekan-Bold bg-gray-10'>
-                                            <option value={10}>10</option>
-                                            <option value={20}>20</option>
+                                            {
+                                                limitOptions.map((opt) => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))
+                                            }
                                         </select>
                                     </div>
                                 </div>
@@ -333,7 +351,7 @@ const UserList = () => {
             {
                 deleteModal && (
                     <DeleteModal
-                        confirmBtn={deleteModalHandel}
+                        confirmBtn={confirmSubmitHandle}
                         closeBtn={operationCancelled}
                         text={"کاربر"}
                     />
