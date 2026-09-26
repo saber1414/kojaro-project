@@ -2,8 +2,9 @@
 
 import DeleteModal from "@/components/modules/AdminPanel/DeleteModal/DeleteModal";
 import EmptyPage from "@/components/modules/AdminPanel/EmptyPage/EmptyPage";
+import Search from "@/components/modules/AdminPanel/Search/Search";
 import TableSkeleton from "@/components/modules/AdminPanel/TableSkeleton/TableSkeleton";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 const users = [
     { _id: 1, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
@@ -20,10 +21,26 @@ const users = [
 ];
 
 const UserList = () => {
-    const allUsers = useMemo(() =>
-        users.filter((user) => user.role === "user"),
-        [users]
-    );
+    const [search, setSearch] = useState<string>("");
+
+    const allUsers = useMemo(() => {
+        const onlyUsers = users.filter((user) => user.role === "user");
+
+        const q = search.trim().toLowerCase();
+        if (!q) return onlyUsers;
+
+        return onlyUsers.filter((user) => {
+            const name = (user.name || "").toLowerCase();
+            const username = (user.username || "").toLowerCase();
+            const email = (user.email || "").toLowerCase();
+
+            return (
+                name.includes(q) ||
+                username.includes(q) ||
+                email.includes(q)
+            )
+        })
+    }, [users, search]);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
@@ -80,6 +97,11 @@ const UserList = () => {
         }
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+        setPage(1)
+    };
+
     const confirmSubmitHandle = async () => {
         console.log('click')
     };
@@ -98,22 +120,10 @@ const UserList = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-x-10">
                         <h3 className='text-[14px] font-IRANYekan-Bold'>لیست کاربران</h3>
-                        <div className="bg-white w-88 h-10.5 rounded-md px-2 flex items-center gap-x-2">
-                            <svg
-                                width='16'
-                                height='16'
-                                fill='none'
-                                viewBox='0 0 16 16'
-                            >
-                                <path
-                                    stroke='#AEB9E1'
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    d='M7.26 12.945a5.926 5.926 0 1 0 0-11.852 5.926 5.926 0 0 0 0 11.852M14.667 14.426l-3.223-3.222'
-                                ></path>
-                            </svg>
-                            <input type="text" className='w-full h-full text-[13px] font-IRANYekan-Bold placeholder:text-[13px] text-gray-icon' placeholder='جستوجو...' />
-                        </div>
+                        <Search
+                            value={search}
+                            onChange={handleSearchChange}
+                        />
                     </div>
                     <button type='button' className='w-34.25 h-8 bg-green-1 text-white cursor-pointer text-[13px] rounded-sm'>افزودن کاربر جدید</button>
                 </div>

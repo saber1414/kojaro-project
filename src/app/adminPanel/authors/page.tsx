@@ -1,6 +1,6 @@
 import Aside from '@/components/modules/AdminPanel/Aside/Aside'
 import Header from '@/components/modules/AdminPanel/Header/Header'
-import AuthorList from '@/components/templates/adminPanel/authors/authors'
+import AuthorList from '@/components/templates/AdminPanel/authors/authors'
 import React from 'react'
 
 const Authors = () => {

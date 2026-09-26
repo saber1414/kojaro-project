@@ -1,6 +1,7 @@
 "use client"
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
+import Search from '@/components/modules/AdminPanel/Search/Search';
 import React, { useMemo, useState } from 'react'
 
 const users = [
@@ -20,10 +21,27 @@ const users = [
 ];
 
 const AuthorList = () => {
-    const authors = useMemo(() =>
-        users.filter((author) => author.role === "author"),
-        [users]
-    );
+    const [search, setSearch] = useState<string>("");
+
+    const authors = useMemo(() => {
+        const onlyAuthors = users.filter((user) => user.role === "author");
+
+        const q = search.trim().toLowerCase();
+        if (!q) return onlyAuthors;
+
+        return onlyAuthors.filter((author) => {
+            const name = (author.name || "").toLowerCase();
+            const username = (author.username || "").toLowerCase();
+            const email = (author.email || "").toLowerCase();
+
+            return (
+                name.includes(q) ||
+                username.includes(q) ||
+                email.includes(q)
+            )
+        })
+    }, [users, search]);
+
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -82,6 +100,11 @@ const AuthorList = () => {
         }
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+        setPage(1)
+    };
+
     const deleteAllHandel = async () => {
         console.log('delete all')
     };
@@ -99,22 +122,10 @@ const AuthorList = () => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-10">
                     <h3 className='text-[14px] font-IRANYekan-Bold'>لیست نویسندگان</h3>
-                    <div className="bg-white w-88 h-10.5 rounded-md px-2 flex items-center gap-x-2">
-                        <svg
-                            width='16'
-                            height='16'
-                            fill='none'
-                            viewBox='0 0 16 16'
-                        >
-                            <path
-                                stroke='#AEB9E1'
-                                strokeLinecap='round'
-                                strokeLinejoin='round'
-                                d='M7.26 12.945a5.926 5.926 0 1 0 0-11.852 5.926 5.926 0 0 0 0 11.852M14.667 14.426l-3.223-3.222'
-                            ></path>
-                        </svg>
-                        <input type="text" className='w-full h-full text-[13px] font-IRANYekan-Bold placeholder:text-[13px] text-gray-icon' placeholder='جستوجو...' />
-                    </div>
+                    <Search
+                        value={search}
+                        onChange={handleSearchChange}
+                    />
                 </div>
                 <button type='button' className='w-34.25 h-8 bg-green-1 text-white cursor-pointer text-[13px] rounded-sm'>افزودن کاربر جدید</button>
             </div>
@@ -364,7 +375,7 @@ const AuthorList = () => {
             </div>
             {
                 deleteModal && (
-                    <DeleteModal 
+                    <DeleteModal
                         confirmBtn={confirmSubmitHandle}
                         closeBtn={operationCancelled}
                         text='نویسنده'
