@@ -1,128 +1,53 @@
 "use client"
-import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import Link from 'next/link';
 import React, { useMemo, useState } from 'react'
+import CreateArticleCategory from './createCategory';
+import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
+import EditCategory from './editCategory';
 
-const articles = [
-    {
-        _id: "6aa6a4316b74be3571366831",
-        title: "راهنمای سفر به یزد",
-        slug: "travel-guide-yazd",
-        excerpt: "خلاصه کوتاه مقاله درباره یزد",
-        content: "گوی ارزشمند پومودورو که سال‌ها در محوطه پارک ارم رها شده بود، بالاخره پس از جا به جایی و مرمت در باغ موزه زمان تهران رونمایی شد. آیین رونمایی از اثر ارزشمند کره پومودورو هم‌زمان با یکصدمین سال تولد این هنرمند برجسته ایتالیایی، با حضور مدیران موزه‌های بنیاد، رئیس انجمن موزه‌های ایران، رایزن فرهنگی سفارت ایتالیا و جمعی از مسئولان فرهنگی در محل موزه زمان برگزار شد.\n\nاین اثر هنری تراز اول جهان که در دهه پنجاه شمسی خریداری و به تهران منتقل شده بود، پس از سال‌ها استقرار در پارک ارم و آسیب‌های ساختاری متعدد، تحت یک پروژه پژوهشی و درمانی دقیق قرار گرفت.",
-        coverImage: "/images/image01.jpg",
-        coverImagePublicId: null,
-        author: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        category: {
-            _id: "6a91506b7725a714a5b18ed1",
-            name: "مجله گردشگری",
-            slug: "tourism",
-            icon: null
-        },
-        articleCategory: {
-            _id: "6aa6a35870535be588ab315e",
-            name: "جهانگردی",
-            slug: "tourism"
-        },
-        tags: [
-            "یزد",
-            "گردشگری",
-            "کویر"
-        ],
-        status: "draft",
-        isFeatured: false,
-        views: 0,
-        readingTime: 1,
-        metaTitle: null,
-        metaDescription: null,
-        publishedAt: null,
-        dislikeCount: 0,
-        likeCount: 1
-    },
-    {
-        _id: "6aa6a4316b74be3571366834",
-        title: "راهنمای سفر به یزد",
-        slug: "travel-guide-yazd",
-        excerpt: "خلاصه کوتاه مقاله درباره یزد",
-        content: "گوی ارزشمند پومودورو که سال‌ها در محوطه پارک ارم رها شده بود، بالاخره پس از جا به جایی و مرمت در باغ موزه زمان تهران رونمایی شد. آیین رونمایی از اثر ارزشمند کره پومودورو هم‌زمان با یکصدمین سال تولد این هنرمند برجسته ایتالیایی، با حضور مدیران موزه‌های بنیاد، رئیس انجمن موزه‌های ایران، رایزن فرهنگی سفارت ایتالیا و جمعی از مسئولان فرهنگی در محل موزه زمان برگزار شد.\n\nاین اثر هنری تراز اول جهان که در دهه پنجاه شمسی خریداری و به تهران منتقل شده بود، پس از سال‌ها استقرار در پارک ارم و آسیب‌های ساختاری متعدد، تحت یک پروژه پژوهشی و درمانی دقیق قرار گرفت.",
-        coverImage: "/images/image05.jpg",
-        coverImagePublicId: null,
-        author: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        category: {
-            _id: "6a91506b7725a714a5b18ed1",
-            name: "مجله گردشگری",
-            slug: "tourism",
-            icon: null
-        },
-        articleCategory: {
-            _id: "6aa6a35870535be588ab315e",
-            name: "جهانگردی",
-            slug: "tourism"
-        },
-        tags: [
-            "یزد",
-            "گردشگری",
-            "کویر"
-        ],
-        status: "published",
-        isFeatured: false,
-        views: 0,
-        readingTime: 1,
-        metaTitle: null,
-        metaDescription: null,
-        publishedAt: null,
-        dislikeCount: 0,
-        likeCount: 1
-    }
-];
+const articleCategories = [
+    { _id: "1", name: "دسته بندی 1", slug: "/category" },
+    { _id: "2", name: "دسته بندی 2", slug: "/category2" },
+    { _id: "3", name: "دسته بندی 3", slug: "/category3" },
+    { _id: "4", name: "دسته بندی 4", slug: "/category4" },
+    { _id: "5", name: "دسته بندی 5", slug: "/category5" },
+    { _id: "6", name: "دسته بندی 6", slug: "/category6" },
+    { _id: "7", name: "دسته بندی 7", slug: "/category7" },
+    { _id: "8", name: "دسته بندی 8", slug: "/category8" },
+    { _id: "9", name: "دسته بندی 9", slug: "/category9" },
+    { _id: "10", name: "دسته بندی 10", slug: "/category10" },
+    { _id: "11", name: "دسته بندی 11", slug: "/category11" },
+]
 
-const ArticlesList = () => {
-    const [search, setSearch] = useState("");
+const ArticleCategoriesList = () => {
+    const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
-
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [createModel, setCreateModel] = useState<boolean>(false);
+    const [editModal, setEditModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
 
-    const allArticles = useMemo(() => {
-        const onlyArticles = articles;
+    const allCategories = useMemo(() => {
+        const onlyCategories = articleCategories;
 
         const q = search.trim().toLowerCase();
-        if (!q) return onlyArticles;
+        if (!q) return onlyCategories;
 
-        return onlyArticles.filter((article) => {
-            const title = (article.title || "").toLowerCase();
-            const slug = (article.slug || "").toLowerCase();
-            const author = (article.author.fullname || article.author.username)
+        return onlyCategories.filter((category) => {
+            const name = (category.name || "").toLowerCase();
+            const slug = (category.slug || "").toLowerCase();
 
             return (
-                title.includes(q) ||
-                slug.includes(q) ||
-                author.includes(q)
+                name.includes(q) || slug.includes(q)
             )
         });
-    }, [articles, search]);
+    }, [articleCategories, search]);
 
-    const total = allArticles.length;
+    const total = allCategories.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
-    const currentPage = Math.min(page, totalPages);
-
-    const paginatedArticles = useMemo(() => {
-        const start = (currentPage - 1) * limit;
-        return allArticles.slice(start, start + limit);
-    }, [articles, currentPage, limit]);
+    const currentPage = Math.min(page, totalPages)
 
     const startItem = total === 0 ? 0 : (currentPage - 1) * limit + 1;
     const endItem = Math.min(currentPage * limit, total);
@@ -130,29 +55,14 @@ const ArticlesList = () => {
     const goPrev = () => setPage((page) => Math.max(1, page - 1));
     const goNext = () => setPage((page) => Math.min(totalPages, page + 1));
 
-    const limitOptions = useMemo(() => {
-        const totalCount = allArticles.length;
-        if (totalCount <= 0) return [10];
-
-        const base = [5, 10, 20, 50];
-        const options = base.filter((n) => n < totalCount);
-        if(!options.includes(totalCount)) options.push(totalCount);
-
-        return options.length ? options : [totalCount];
-    }, [allArticles]);
-
-    const handleLimitChange = (value: number) => {
-        setLimit(value);
-        setPage(1)
-    };
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value)
-    };
+    const paginatedCategories = useMemo(() => {
+        const start = (currentPage - 1) * limit;
+        return allCategories.slice(start, start + limit)
+    }, [allCategories, currentPage, limit]);
 
     const pageIds = useMemo(() =>
-        paginatedArticles.map((article) => article._id),
-        [paginatedArticles]
+        paginatedCategories.map((category) => category._id),
+        [paginatedCategories]
     );
 
     const isAllPageSelected = pageIds.length > 0 && pageIds.every((_id) => selectedIds.includes(_id));
@@ -164,33 +74,58 @@ const ArticlesList = () => {
 
     const toggleSelectAllPage = () => {
         if (isAllPageSelected) {
-            setSelectedIds((prev) => prev.filter((_id) => !pageIds.includes(_id)));
+            setSelectedIds((prev) => prev.filter((_id) => !pageIds.includes(_id)))
         } else {
-            setSelectedIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...pageIds])))
         }
     };
 
-    const confirmSubmitHandle = async () => {
-        console.log("delete",)
+    const limitOptions = useMemo(() => {
+        const totalCount = allCategories.length;
+        if (totalCount <= 0) return [10];
+
+        const base = [5, 10, 20, 50];
+        const options = base.filter((n) => n < totalCount);
+        if (!options.includes(totalCount)) options.push(totalCount);
+
+        return options.length ? options : [totalCount]
+    }, [allCategories]);
+
+    const handleLimitChange = (value: number) => {
+        setLimit(value)
+        setPage(1)
     };
 
-    const operationCancelled = () => {
-        setDeleteModal(false)
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value)
+    };
+
+    const createCategoryHandel = async () => {
+        console.log('create category')
+    };
+
+    const editCategoryHandel = async () => {
+        console.log('edit category')
+    }
+
+    const confirmSubmitHandle = async () => {
+        console.log("delete",)
     };
 
     return (
         <>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-10">
-                    <h3 className='text-[14px] font-IRANYekan-Bold'>لیست نویسندگان</h3>
+                    <h3 className='text-[14px] font-IRANYekan-Bold'>دسته بندی مقالات</h3>
                     <Search
                         value={search}
                         onChange={handleSearchChange}
                     />
                 </div>
-                <Link
-                    href="/adminPanel/createArticle"
-                    className='w-34.25 h-8 bg-green-1 text-white flex items-center justify-center text-[13px] rounded-sm'>ایجاد مقاله +</Link>
+                <button
+                    type='button'
+                    onClick={() => setCreateModel(true)}
+                    className='w-34.25 h-8 cursor-pointer bg-green-1 text-white flex items-center justify-center text-[13px] rounded-sm'>ایجاد دسته بندی +</button>
             </div>
             <div className="mt-10 flex items-center justify-between gap-x-2 xl:gap-x-4 flex-wrap lg:flex-none">
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -208,7 +143,7 @@ const ArticlesList = () => {
                         </svg>
                     </div>
                     <div>
-                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کل مقالات</span>
+                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>دسته بندی ها</span>
                         <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                     </div>
                 </div>
@@ -231,7 +166,7 @@ const ArticlesList = () => {
                         </svg>
                     </div>
                     <div>
-                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>مقالات جدید</span>
+                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>دسته بندی جدید</span>
                         <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                     </div>
                 </div>
@@ -254,7 +189,7 @@ const ArticlesList = () => {
                         </svg>
                     </div>
                     <div>
-                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>مقالات برتر</span>
+                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>دسته بندی برتر</span>
                         <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                     </div>
                 </div>
@@ -277,13 +212,13 @@ const ArticlesList = () => {
                         </svg>
                     </div>
                     <div>
-                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>مقالات منتشر شده</span>
+                        <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>سایر</span>
                         <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                     </div>
                 </div>
             </div>
             {
-                allArticles.length ? (
+                paginatedCategories.length ? (
                     <div className="mt-10 bg-white p-4 rounded-lg">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-x-4">
@@ -305,7 +240,7 @@ const ArticlesList = () => {
                         </div>
                         <span className="w-full h-px bg-gray-10 mt-5 block"></span>
                         <div className="mt-5">
-                            <div className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2">
+                            <div className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2">
                                 <div className="flex items-center justify-center">
                                     <input
                                         type="checkbox"
@@ -317,60 +252,27 @@ const ArticlesList = () => {
                                         className='w-4 h-4 rounded border-gray-300 accent-green-1 cursor-pointer' />
                                 </div>
                                 <div>ردیف</div>
-                                <div>عنوان مقاله</div>
-                                <div>کاور مقاله</div>
-                                <div>نویسنده</div>
-                                <div>دسته بندی</div>
-                                <div>وضعیت انتشار</div>
+                                <div>نام دسته بندی</div>
+                                <div>مسیر دسته بندی</div>
                                 <div>وضعیت</div>
                             </div>
                             {
-                                paginatedArticles.map((article, index) => (
-                                    <div key={article._id} className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr_3fr_3fr_3fr] text-[14px] text-center items-center bg-gray-50 rounded-lg py-4 mb-2">
+                                paginatedCategories.map((category, index) => (
+                                    <div key={category._id} className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr] text-[14px] text-center items-center bg-gray-50 rounded-lg py-4 mb-2">
                                         <div className="flex items-center justify-center">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedIds.includes(article._id)}
-                                                onChange={() => toggleSelectedOne(article._id)}
-                                                className='w-4 h-4 rounded accent-green-1 border-gray-300 cursor-pointer' />
+                                                checked={selectedIds.includes(category._id)}
+                                                onChange={() => toggleSelectedOne(category._id)}
+                                                className='w-4 h-4 rounded border-gray-300 accent-green-1 cursor-pointer' />
                                         </div>
                                         <div>{index + 1}</div>
-                                        <div>{article.title}</div>
-                                        <div className='flex justify-center'>
-                                            <img src={article.coverImage || "--"} className='w-20 rounded-sm' alt="article image" />
-                                        </div>
-                                        <div>{article.author.fullname}</div>
-                                        <div>{article.articleCategory.name}</div>
-                                        <div className={`
-                                                h-8 text-[13px] flex items-center justify-center
-                                                ${article.status === "draft" && "bg-amber-100" ||
-                                            article.status === "published" && "bg-green-100" ||
-                                            article.status === "archived" && "bg-blue-100"
-                                            }
-                                            `}>
-                                            {
-                                                article.status === "draft" && "پیش نویس" ||
-                                                article.status === "published" && "منتشر شده" ||
-                                                article.status === "archived" && "بایگانی‌شده"
-                                            }
-                                        </div>
+                                        <div>{category.name}</div>
+                                        <div dir='ltr'>{category.slug}</div>
                                         <div className='flex items-center justify-center gap-x-2'>
                                             <button
                                                 type="button"
-                                                className='cursor-pointer bg-green-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-green-200 transition-colors'>
-                                                <svg
-                                                    width='16'
-                                                    height='16'
-                                                    fill='currentColor'
-                                                    className='bi bi-eye-fill fill-green-500'
-                                                    viewBox='0 0 16 16'
-                                                >
-                                                    <path d='M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0'></path>
-                                                    <path d='M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7'></path>
-                                                </svg>
-                                            </button>
-                                            <button
-                                                type="button"
+                                                onClick={() => setEditModal(true)}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -468,20 +370,36 @@ const ArticlesList = () => {
                         </div>
                     </div>
                 ) : (
-                    <EmptyPage text='مقالات' name='مقاله' />
+                    <EmptyPage name='دسته بندی' text='دسته بندی ها' />
+                )
+            }
+            {
+                createModel && (
+                    <CreateArticleCategory
+                        confirm={createCategoryHandel}
+                        onCancle={() => setCreateModel(false)}
+                    />
                 )
             }
             {
                 deleteModal && (
-                    <DeleteModal 
+                    <DeleteModal
                         confirmBtn={confirmSubmitHandle}
-                        closeBtn={operationCancelled}
-                        text='مقاله'
+                        closeBtn={() => setDeleteModal(false)}
+                        text='دسته بندی'
+                    />
+                )
+            }
+            {
+                editModal && (
+                    <EditCategory
+                        confirm={editCategoryHandel}
+                        onCancle={() => setEditModal(false)}
                     />
                 )
             }
         </>
     )
-};
+}
 
-export default ArticlesList;
+export default ArticleCategoriesList;
