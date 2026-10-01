@@ -9,6 +9,9 @@ import followsReducer from "./follows/follows";
 import bookmarksReducer from "./bookmarks/bookmarks";
 import articleReactionReducer from "./articleReaction/articleReaction";
 import relatedArticlesReducer from "./relatedArticles/relatedArticles";
+import notificationReducer from "./notifications/notifications";
+import articleCategoriesReducer from "./articleCategories/articleCategories";
+import menuReducer from "./menus/menus";
 
 export const store = configureStore({
     reducer: {
@@ -22,6 +25,9 @@ export const store = configureStore({
         bookmarks: bookmarksReducer,
         articleReaction: articleReactionReducer,
         relatedArticles: relatedArticlesReducer,
+        notifications: notificationReducer,
+        articleCategories: articleCategoriesReducer,
+        menus: menuReducer,
     },
     devTools: process.env.NODE_ENV !== "production"
 });

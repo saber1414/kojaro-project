@@ -51,7 +51,7 @@ const fetchArticles = createAsyncThunk("articles/fetchArticles", async (
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError);
+        return rejectWithValue(axiosError.response?.data?.message);
     }
 });
 
@@ -61,7 +61,7 @@ const fetchArticle = createAsyncThunk("articles/fetchArticle", async (param: str
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError);
+        return rejectWithValue(axiosError.response?.data?.message);
     }
 });
 
@@ -75,7 +75,7 @@ const createArticle = createAsyncThunk("articles/createArticle", async (formData
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError);
+        return rejectWithValue(axiosError.response?.data?.message);
     }
 });
 
@@ -89,7 +89,7 @@ const updateArticle = createAsyncThunk("articles/updateArticle", async ({ _id, f
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError);
+        return rejectWithValue(axiosError.response?.data?.message);
     }
 });
 
@@ -103,7 +103,7 @@ const deleteArticles = createAsyncThunk("articles/deleteArticles", async (ids: s
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError);
+        return rejectWithValue(axiosError.response?.data?.message);
     }
 });
 
