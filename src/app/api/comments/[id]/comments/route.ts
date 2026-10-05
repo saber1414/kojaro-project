@@ -30,8 +30,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const { searchParams } = new URL(req.url);
 
-        const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
-        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("page") || "20")));
+        const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("page") || "10", 10)));
         const skip = (page - 1) * limit;
 
         const user = await authenticate(req);
@@ -93,9 +93,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
                     total,
                     page,
                     limit,
-                    totalPages: Math.ceil(total / limit),
-                    hasPrevPage: page * limit < total,
-                    hasNextPage: page > 1
+                    totalPages: Math.ceil(total / limit) || 1,
+                    hasNextPage: page * limit < total,
+                    hasPrevPage: page > 1
                 }
             }
         }, { status: 200 })

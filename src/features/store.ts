@@ -12,6 +12,7 @@ import relatedArticlesReducer from "./relatedArticles/relatedArticles";
 import notificationReducer from "./notifications/notifications";
 import articleCategoriesReducer from "./articleCategories/articleCategories";
 import menuReducer from "./menus/menus";
+import ticketReducer from "./tickets/tickets";
 
 export const store = configureStore({
     reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
         notifications: notificationReducer,
         articleCategories: articleCategoriesReducer,
         menus: menuReducer,
+        tickets: ticketReducer,
     },
     devTools: process.env.NODE_ENV !== "production"
 });

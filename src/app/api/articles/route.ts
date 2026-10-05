@@ -227,9 +227,9 @@ export async function GET(req: NextRequest) {
                     total,
                     page,
                     limit,
-                    totalPages: Math.ceil(total / limit),
-                    hasPrevPage: page * limit < total,
-                    hasNextPage: page > 1
+                    totalPages: Math.ceil(total / limit) || 1,
+                    hasNextPage: page * limit < total,
+                    hasPrevPage: page > 1
                 }
             }
         }, { status: 200 })
