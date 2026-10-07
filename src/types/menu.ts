@@ -18,4 +18,4 @@ export interface Menu {
     icon?: string | null;
     createdAt: string;
     updatedAt: string
-}
+};
