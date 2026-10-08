@@ -6,6 +6,7 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 import { NextRequest, NextResponse } from "next/server";
+import { Types } from "mongoose";
 
 export async function GET() {
     try {
@@ -112,6 +113,72 @@ export async function POST(req: NextRequest) {
             success: false,
             message: "خطا در ایجاد بنر",
             errors: err
+        }, { status: 500 })
+    }
+};
+
+export async function DELETE(req: NextRequest) {
+    try {
+        await ConnectedDB();
+
+        const admin = await authenticate(req);
+        if (!admin || admin.role !== "admin") {
+            return NextResponse.json({
+                success: false,
+                message: "دسترسی غیر مجاز می باشد"
+            }, { status: 401 })
+        };
+
+        const body = await req.json();
+
+        const { ids } = body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "حداقل یک شناسه انتخاب کنید"
+            }, { status: 400 })
+        };
+
+        const isObjectId = ids.filter((id) => Types.ObjectId.isValid(id));
+        if (isObjectId.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "شناسه‌های ارسال‌شده معتبر نیستند"
+            }, { status: 400 })
+        };
+
+        const banners = await Banner.find({
+            _id: { $in: isObjectId }
+        }).select("_id");
+
+        if (banners.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "هیچ بنری یافت نشد"
+            })
+        };
+
+        const idsToDelete = banners.map((banner) => banner._id);
+
+        const result = await Banner.deleteMany({
+            _id: { $in: idsToDelete }
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: `${result.deletedCount} بنر باموفقیت حذف شد`,
+            data: {
+                deletedCount: result.deletedCount,
+                deletedIds: idsToDelete
+            }
+        })
+    } catch (err: any) {
+        console.log("Error Delete Banners =>", err);
+        return NextResponse.json({
+            success: false,
+            message: "خطا در حذف بنرها",
+            error: err
         }, { status: 500 })
     }
 };

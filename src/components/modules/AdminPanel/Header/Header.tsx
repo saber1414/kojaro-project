@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import MenuMobile from '../MenuMobile/MenuMobile';
+import Breadcrumb from '../Breadcrumb/Breadcrumb';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,11 +26,7 @@ const Header = () => {
         </button>
         <div className="hidden lg:block">
           <h3 className="text-[14px] font-IRANYekan-Light">مدیر گرامی به پنل مدیریت خوش آمدید</h3>
-          <div className="mt-5 flex items-center gap-x-2">
-            <Link href="/adminPanel" className='text-[13px] text-green-1'>جدول</Link>
-            <span className='block'>/</span>
-            <Link href="/adminPanel" className='text-[13px]'>کاربران</Link>
-          </div>
+          <Breadcrumb />
         </div>
         <div className="flex items-center gap-x-8 flex-row-reverse">
           <div className="flex items-center gap-x-6 flex-row-reverse">
