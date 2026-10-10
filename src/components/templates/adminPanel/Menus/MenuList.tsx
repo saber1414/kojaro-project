@@ -1,6 +1,6 @@
 "use client"
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
-import DetailsMenu from '@/components/templates/AdminPanel/Menus/DetailsMenu';
+import DetailsMenu from '@/components/templates/AdminPanel/menus/DetailsMenu';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
 import React, { useMemo, useState } from 'react'
