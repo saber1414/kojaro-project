@@ -26,13 +26,19 @@ export interface Ticket {
     status: TicketStatus;
     priority: TicketPriority;
     category: TicketCategory;
-    createdBy: TicketUser | string;
-    assignedTo?: TicketUser | string | null;
-    replies?: TicketReply[];
+    createdBy: {
+        _id: string;
+        username: string;
+        image?: string;
+        role?: string;
+        fullname?: string;
+    };
+    assignedTo?: unknown;
     attachments?: string[];
     lastReplyAt?: string | null;
     closedAt?: string | null;
-    closedBy?: TicketUser | string | null;
-    createdAt: string;
-    updatedAt: string;
-};
+    closedBy?: unknown;
+    replies?: unknown[];
+    createdAt?: string;
+    updatedAt?: string;
+}

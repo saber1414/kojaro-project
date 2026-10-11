@@ -76,7 +76,7 @@ const NotificationsList = () => {
     };
 
     const handlelLimitChange = (value: number) => {
-        setLimit(limit);
+        setLimit(value);
         setPage(1)
     };
 
@@ -132,7 +132,7 @@ const NotificationsList = () => {
         <>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-10">
-                    <h3 className='text-[14px] font-IRANYekan-Bold'>لیست بنر</h3>
+                    <h3 className='text-[14px] font-IRANYekan-Bold'>لیست اعلانات</h3>
                     <Search
                         value={search}
                         onChange={handelSearchChange}

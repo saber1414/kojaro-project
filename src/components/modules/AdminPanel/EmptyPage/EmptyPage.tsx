@@ -15,4 +15,4 @@ const EmptyPage = ({name,text}:EmptyPageProp) => {
     )
 }
 
-export default EmptyPage
+export default EmptyPage;
