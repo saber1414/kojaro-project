@@ -119,6 +119,70 @@
     }
   }
 
+  .switch-wrapper .tgl {
+    display: none;
+  }
+
+  .switch-wrapper,
+  .switch-wrapper *,
+  .switch-wrapper *:after,
+  .switch-wrapper *:before {
+    box-sizing: border-box;
+  }
+
+.switch-wrapper .tgl::selection,
+  .switch-wrapper .tgl *::selection {
+    background: none;
+  }
+
+  .switch-wrapper .tgl+.tgl-btn {
+    outline: 0;
+    display: block;
+    width: 64px;
+    height: 32px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .switch-wrapper .tgl+.tgl-btn:after,
+  .switch-wrapper .tgl+.tgl-btn:before {
+    position: relative;
+    display: block;
+    content: "";
+    width: 50%;
+    height: 100%;
+  }
+
+  .switch-wrapper .tgl+.tgl-btn:after {
+    left: 0;
+  }
+
+  .switch-wrapper .tgl+.tgl-btn:before {
+    display: none;
+  }
+
+  .switch-wrapper .tgl:checked+.tgl-btn:after {
+    left: 50%;
+  }
+
+  .switch-wrapper .tgl-light+.tgl-btn {
+    background: #f0f0f0;
+    border-radius: 32px;
+    padding: 2px;
+    transition: all 0.4s ease;
+  }
+
+  .switch-wrapper .tgl-light+.tgl-btn:after {
+    border-radius: 50%;
+    background: #fff;
+    transition: all 0.2s ease;
+  }
+
+  .switch-wrapper .tgl-light:checked+.tgl-btn {
+    background: #3bcbbe;
+  }
+
 }
 
 @layer utilities {
