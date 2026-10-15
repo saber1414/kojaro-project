@@ -14,7 +14,6 @@ const SignInBox = () => {
     const [inputValue, setInputValue] = useState('');
     const [errors, setErrors] = useState<{ field?: string, message?: string }[]>([]);
 
-
     const validateEmail = (email: string): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);

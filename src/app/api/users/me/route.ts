@@ -25,8 +25,18 @@ export async function PUT(req: NextRequest) {
         let body: any = {};
         let imageFile: File | null = null;
 
-        if (contentType.includes("multipart/form-dat")) {
+        if (contentType.includes("multipart/form-data")) {
             const formData = await req.formData();
+
+            let socialLinks: any = null;
+            const socialRaw = formData.get("socialLinks");
+            if (typeof socialRaw === "string" && socialRaw.trim()) {
+                try {
+                    socialLinks = JSON.parse(socialRaw);
+                } catch {
+                    socialLinks = null;
+                }
+            };
 
             body = {
                 fullname: formData.get("fullname") as string | null,
@@ -34,12 +44,9 @@ export async function PUT(req: NextRequest) {
                 dateOfBirth: formData.get("dateOfBirth") as string | null,
                 city: formData.get("city") as string | null,
                 website: formData.get("website") as string | null,
-                socialLinks: {
-                    instagram: formData.get("socialLinks.instagram") as string | null,
-                    twitter: formData.get("socialLinks.twitter") as string | null,
-                    telegram: formData.get("socialLinks.telegram") as string | null,
-                    linkedin: formData.get("socialLinks.linkedin") as string | null,
-                },
+                bio: formData.get("bio") as string | null,
+                phone: formData.get("phone") as string | null,
+                socialLinks,
             };
             imageFile = formData.get("image") as File | null;
         } else {
@@ -120,15 +127,16 @@ export async function PUT(req: NextRequest) {
         if (body.city !== undefined) updateData.city = body.city?.trim() || null;
         if (body.dateOfBirth !== undefined) updateData.dateOfBirth = body.dateOfBirth?.trim() || null;
         if (body.website !== undefined) updateData.website = body.website?.trim() || null;
-        if (newImagePath) updateData.newImagePath = newImagePath;
-        if (body.socialLinks !== undefined) {
+        if (newImagePath) updateData.image = newImagePath;
+        if (body.phone !== undefined) updateData.phone = body.phone?.trim() || null;
+        if (body.socialLinks !== undefined && body.socialLinks !== null) {
             updateData.socialLinks = {
-                instagram: body.socialLinks?.instagram?.trim() || null,
-                twitter: body.socialLinks?.twitter?.trim() || null,
-                telegram: body.socialLinks?.telegram?.trim() || null,
-                linkedin: body.socialLinks?.linkedin?.trim() || null,
+                instagram: body.socialLinks?.instagram?.trim?.() || body.socialLinks?.instagram || null,
+                twitter: body.socialLinks?.twitter?.trim?.() || body.socialLinks?.twitter || null,
+                telegram: body.socialLinks?.telegram?.trim?.() || body.socialLinks?.telegram || null,
+                linkedin: body.socialLinks?.linkedin?.trim?.() || body.socialLinks?.linkedin || null,
             };
-        };
+        }
 
         const updatedUser = await User.findByIdAndUpdate(
             user._id,

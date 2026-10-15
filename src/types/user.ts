@@ -13,7 +13,7 @@ export interface User {
     hasPassword?: boolean;
     emailVerified?: boolean;
     phoneVerified?: boolean;
-    role?: 'کاربر' | 'مدیر' | 'نویسنده' | 'پشتیبانی';
+    role?: string;
     lastLogin?: Date;
     bio?: string;
     website?: string;
@@ -23,4 +23,6 @@ export interface User {
         telegram?: string;
         linkedin?: string;
     };
+    createdAt: string;
+    updatedAt: string;
 };
