@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react'
+import LogoutMe from '../Logout/Logout';
 
 const Aside = () => {
     const pathname = usePathname();
@@ -23,7 +24,7 @@ const Aside = () => {
             href: "/adminPanel"
         },
         {
-            name: "جدول",
+            name: "کاربران | نویسندگان",
             icon: (
                 <svg
                     xmlns='http://www.w3.org/2000/svg'
@@ -82,7 +83,7 @@ const Aside = () => {
             href: "/adminPanel/categories"
         },
         {
-            name: "ابزار",
+            name: "مورد نیاز",
             icon: (
                 <svg width="16" height="16" fill="currentColor" className="bi bi-sign-intersection-y-fill fill-green-1" viewBox="0 0 16 16">
                     <path d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098zm1.443 4.762 1.014 1.106L8.75 8.83V12h-1.5V8.83L4.493 6.303l1.014-1.106L8 7.483z" />
@@ -93,6 +94,7 @@ const Aside = () => {
                 { name: "تبلیغات", href: "/adminPanel/advertisement" },
                 { name: "اعلان ها", href: "/adminPanel/notifications" },
                 { name: "تیکت ها", href: "/adminPanel/tickets" },
+                { name: "دیدگاه ها", href: "/adminPanel/comments" },
             ]
         },
         {
@@ -105,16 +107,6 @@ const Aside = () => {
             subMenu: [],
             href: "/adminPanel/profile"
         },
-        {
-            name: "تنظیمات",
-            icon: (
-                <svg width="16" height="16" fill="currentColor" className="bi bi-gear-fill fill-green-1" viewBox="0 0 16 16">
-                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
-                </svg>
-            ),
-            subMenu: [],
-            href: "/adminPanel/setting"
-        }
     ];
 
     const toggleMenu = (name: string) => {
@@ -227,11 +219,7 @@ const Aside = () => {
                     })
                 }
             </ul>
-            <div className="mt-auto">
-                <button type="button" className='cursor-pointer text-[14px] bg-white rounded-lg w-full h-10'>
-                    <span>خروج از حساب</span>
-                </button>
-            </div>
+            <LogoutMe />
         </div>
     )
 }

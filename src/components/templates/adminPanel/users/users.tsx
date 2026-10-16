@@ -1,27 +1,39 @@
 "use client"
-
 import DeleteModal from "@/components/modules/AdminPanel/DeleteModal/DeleteModal";
 import EmptyPage from "@/components/modules/AdminPanel/EmptyPage/EmptyPage";
 import Search from "@/components/modules/AdminPanel/Search/Search";
 import TableSkeleton from "@/components/modules/AdminPanel/TableSkeleton/TableSkeleton";
-import React, { useMemo, useState } from "react";
-
-const users = [
-    { _id: 1, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
-    { _id: 2, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-    { _id: 3, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
-    { _id: 4, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-    { _id: 5, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
-    { _id: 6, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-    { _id: 7, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-    { _id: 8, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "user" },
-    { _id: 9, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-    { _id: 10, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "user" },
-    { _id: 11, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-];
+import { useAppDispatch, useAppSelector } from "@/features/hooks";
+import { fetchUsers } from "@/features/users/users";
+import React, { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 const UserList = () => {
+    const dispatch = useAppDispatch();
+    const { users, isLoading, errors } = useAppSelector(state => state.users);
+
     const [search, setSearch] = useState<string>("");
+
+    useEffect(() => {
+        dispatch(fetchUsers({ page, limit }))
+    }, []);
+
+    if (errors && !users) {
+        toast.error(errors)
+        return
+    };
+
+    const newUsersCount = useMemo(() => {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        return users.filter((user) => {
+            if(user.role !== 'user') return false;
+            const createdAt = new Date(user.createdAt);
+            
+            return createdAt >= sevenDaysAgo
+        }).length;
+    }, [users]);
 
     const allUsers = useMemo(() => {
         const onlyUsers = users.filter((user) => user.role === "user");
@@ -30,7 +42,7 @@ const UserList = () => {
         if (!q) return onlyUsers;
 
         return onlyUsers.filter((user) => {
-            const name = (user.name || "").toLowerCase();
+            const name = (user.fullname || "").toLowerCase();
             const username = (user.username || "").toLowerCase();
             const email = (user.email || "").toLowerCase();
 
@@ -44,7 +56,7 @@ const UserList = () => {
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const total = allUsers.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -85,7 +97,7 @@ const UserList = () => {
     const isAllPageSelected = pageIds.length > 0 && pageIds.every((_id) => selectedIds.includes(_id));
     const isSomePageSlected = pageIds.some((_id) => selectedIds.includes(_id) && !isAllPageSelected);
 
-    const toggleSelectedOne = (_id: number) => {
+    const toggleSelectedOne = (_id: string) => {
         setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
     };
 
@@ -148,7 +160,7 @@ const UserList = () => {
                         </div>
                         <div>
                             <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کل کاربران</span>
-                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {paginatedUsers.length}</p>
                         </div>
                     </div>
                     <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -167,7 +179,7 @@ const UserList = () => {
                         </div>
                         <div>
                             <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کاربران جدید</span>
-                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newUsersCount}</p>
                         </div>
                     </div>
                     <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -186,7 +198,7 @@ const UserList = () => {
                         </div>
                         <div>
                             <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کاربران برتر</span>
-                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                         </div>
                     </div>
                     <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -205,12 +217,12 @@ const UserList = () => {
                         </div>
                         <div>
                             <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>سایر کاربران</span>
-                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                            <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                         </div>
                     </div>
                 </div>
                 {
-                    users.length ? (
+                    paginatedUsers.length ? (
                         <div className="mt-10 bg-white p-4 rounded-lg">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-x-4">
@@ -232,7 +244,6 @@ const UserList = () => {
                                 </div>
                             </div>
                             <span className='w-full h-px bg-gray-10 mt-5 block'></span>
-                            {/* table */}
                             <div className="mt-5">
                                 <div className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2">
                                     <div className="flex items-center justify-center">
@@ -263,7 +274,7 @@ const UserList = () => {
                                                     className='w-4 h-4 rounded accent-green-1 border-gray-300 cursor-pointer' />
                                             </div>
                                             <div>{index + 1}</div>
-                                            <div>{user.name}</div>
+                                            <div>{user?.fullname ? user.fullname : "--"}</div>
                                             <div>{user.username}</div>
                                             <div>{user.email}</div>
                                             <div>{user.phone}</div>
@@ -353,6 +364,8 @@ const UserList = () => {
                                 </div>
                             </div>
                         </div>
+                    ) : isLoading ? (
+                        <TableSkeleton rows={5} />
                     ) : (
                         <EmptyPage name="کاربری" text="کاربران" />
                     )

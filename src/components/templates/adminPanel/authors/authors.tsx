@@ -2,26 +2,33 @@
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import React, { useMemo, useState } from 'react'
-
-const users = [
-    { _id: 1, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "author" },
-    { _id: 2, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 3, name: "علی احمدی", username: "ali_ahmadi", email: "ali.ahmadi001@gmail.com", phone: "09215598741", role: "user" },
-    { _id: 4, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 5, name: "صابر اسماعیلی", username: "Saber__dev", email: "saber.esmaili1414@gmail.com", phone: "09333943645", role: "user" },
-    { _id: 6, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "user" },
-    { _id: 7, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
-    { _id: 8, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "author" },
-    { _id: 9, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--" },
-    { _id: 10, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "09333943645", role: "author" },
-    { _id: 11, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
-    { _id: 12, name: "--", username: "sasan_d", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
-    { _id: 13, name: "--", username: "saberd", email: "sasan_mohammadi00@gmail.com", phone: "--", role: "author" },
-];
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { fetchUsers } from '@/features/users/users';
+import React, { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast';
 
 const AuthorList = () => {
+    const dispatch = useAppDispatch();
+    const { users, isLoading, errors } = useAppSelector(state => state.users);
+
     const [search, setSearch] = useState<string>("");
+
+    useEffect(() => {
+        dispatch(fetchUsers({ page, limit })).unwrap()
+    }, []);
+
+    const newAuthorsCount = useMemo(() => {
+        const now = new Date();
+        const sevenDaysAgoe = new Date(now.getTime() - 7 * 24 * 60 * 60 / 1000);
+
+        return users.filter((author) => {
+            if (author.role !== "author") return null;
+            const createdAt = new Date(author.createdAt);
+
+            return createdAt >= sevenDaysAgoe;
+        }).length;
+    }, [users]);
 
     const authors = useMemo(() => {
         const onlyAuthors = users.filter((user) => user.role === "author");
@@ -30,7 +37,7 @@ const AuthorList = () => {
         if (!q) return onlyAuthors;
 
         return onlyAuthors.filter((author) => {
-            const name = (author.name || "").toLowerCase();
+            const name = (author.fullname || "").toLowerCase();
             const username = (author.username || "").toLowerCase();
             const email = (author.email || "").toLowerCase();
 
@@ -42,9 +49,14 @@ const AuthorList = () => {
         })
     }, [users, search]);
 
+    if (errors && !users) {
+        toast.error(errors)
+        return
+    };
+
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
 
@@ -88,7 +100,7 @@ const AuthorList = () => {
     const isAllPageSelected = pageIds.length > 0 && pageIds.every((_id) => selectedIds.includes(_id));
     const isSomePageSlected = pageIds.some((_id) => selectedIds.includes(_id) && !isAllPageSelected);
 
-    const toggleSelectedOne = (_id: number) => {
+    const toggleSelectedOne = (_id: string) => {
         setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
     };
 
@@ -150,7 +162,7 @@ const AuthorList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کل نویسندگان</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {paginatedAuthros.length}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -169,7 +181,7 @@ const AuthorList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>نویسندگان جدید</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newAuthorsCount}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -188,7 +200,7 @@ const AuthorList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>نویسندگان برتر</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -207,7 +219,7 @@ const AuthorList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>سایر نویسندگان</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 1</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
                     </div>
                 </div>
             </div>
@@ -235,7 +247,7 @@ const AuthorList = () => {
                 <span className='w-full h-px bg-gray-10 mt-5 block'></span>
                 {/* table */}
                 {
-                    users.length ? (
+                    paginatedAuthros.length ? (
                         <div className="mt-5">
                             <div className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2">
                                 <div className="flex items-center justify-center">
@@ -266,10 +278,10 @@ const AuthorList = () => {
                                                 className='w-4 h-4 rounded accent-green-1 border-gray-300 cursor-pointer' />
                                         </div>
                                         <div>{index + 1}</div>
-                                        <div>{user.name}</div>
+                                        <div>{user?.fullname ? user.fullname : "--"}</div>
                                         <div>{user.username}</div>
                                         <div>{user.email}</div>
-                                        <div>{user.phone}</div>
+                                        <div>{user?.phone ? user.phone : "--"}</div>
                                         <div className='flex items-center justify-center gap-x-2'>
                                             <button
                                                 type="button"
@@ -308,6 +320,8 @@ const AuthorList = () => {
                                 ))
                             }
                         </div>
+                    ) : isLoading ? (
+                        <TableSkeleton rows={5} />
                     ) : (
                         <EmptyPage name='نویسنده' text='نویسندگان' />
                     )

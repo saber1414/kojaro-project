@@ -19,10 +19,15 @@ const Logout = ({ onCancel, onClick, loading }: LogoutProps) => {
                         <span className='text-[14px] font-IRANYekan-Light'>آیا می‌خواهید از حساب کاربری خود خارج شوید؟</span>
                     </div>
                     <div className="mt-10 flex items-center justify-center gap-x-2">
-                        <button onClick={onClick} className='h-8 font-IRANYekan-Bold px-4 bg-dark2 text-white text-[13px] cursor-pointer rounded-full' type='button'>
+                        <button
+                            onClick={onClick}
+                            disabled={loading}
+                            className='h-8 font-IRANYekan-Bold px-4 bg-dark2 w-31 flex items-center justify-center text-white text-[13px] cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-no-drop' type='button'>
                             {loading ? <div className="submit-form"></div> : "بله خارج می‌شوم"}
                         </button>
-                        <button onClick={onCancel} type="button" className='h-8 w-31 font-IRANYekan-Bold px-4 text-[13px] border border-gray-200 rounded-full cursor-pointer'>انصراف</button>
+                        <button
+                            onClick={onCancel}
+                            type="button" className='h-8 w-31 font-IRANYekan-Bold px-4 text-[13px] border border-gray-200 rounded-full cursor-pointer'>انصراف</button>
                     </div>
                 </div>
             </div>
