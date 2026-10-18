@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
-import { User } from "@/types/user";
+import { CreateUserByAdminPayload, User } from "@/types/user";
 import { Pagination } from "@/types/pagination";
 
 export interface UsersState {
@@ -113,7 +113,7 @@ export const confirmChangePhone = createAsyncThunk("users/confirmChangePhone", a
 
 export const changeUserRole = createAsyncThunk("users/changeUserRole", async ({ _id, role }: { _id: string, role: string }, { rejectWithValue }) => {
     try {
-        const response = await axios.put(`/api/users/${_id}/role`, { role }, { withCredentials: true });
+        const response = await axios.patch(`/api/users/${_id}/role`, { role }, { withCredentials: true });
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
@@ -128,6 +128,26 @@ export const deleteUsers = createAsyncThunk("users/deleteUser", async (ids: stri
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
         return rejectWithValue(axiosError.response?.data?.message);
+    }
+});
+
+export const createUserByAdmin = createAsyncThunk("users/createUserByAdmin", async (data: CreateUserByAdminPayload, { rejectWithValue }) => {
+    try {
+        const response = await axios.post("/api/auth/admin/register", data, { withCredentials: true });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>;
+        return rejectWithValue(axiosError.response?.data?.message)
+    }
+});
+
+export const deletedUser = createAsyncThunk("users/deletedUser", async (_id: string, { rejectWithValue }) => {
+    try {
+        const response = await axios.delete(`/api/users/${_id}`, { withCredentials: true });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>;
+        return rejectWithValue(axiosError.response?.data?.message)
     }
 });
 
@@ -287,6 +307,52 @@ const usersSlice = createSlice({
             .addCase(deleteUsers.rejected, (state, action) => {
                 state.isLoading = false;
                 state.errors = action.error as string;
+            })
+            .addCase(createUserByAdmin.pending, (state, action) => {
+                state.isLoading = true;
+                state.errors = null;
+            })
+            .addCase(createUserByAdmin.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.successMessage = action.payload.message;
+
+                const created = action.payload.data;
+                if (created) {
+                    state.users = [
+                        {
+                            _id: created.id || created._id,
+                            email: created.email,
+                            phone: created.phone,
+                            username: created.username,
+                            fullname: created.fullname,
+                            image: created.image,
+                            role: created.role,
+                            hasPassword: created.hasPassword,
+                            isVerified: true,
+                        } as User,
+                        ...state.users
+                    ]
+                }
+            })
+            .addCase(createUserByAdmin.rejected, (state, action) => {
+                state.isLoading = false;
+                state.errors = action.payload as string;
+            })
+            .addCase(deletedUser.pending, (state) => {
+                state.isLoading = true;
+                state.errors = null;
+            })
+            .addCase(deletedUser.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.successMessage = action.payload?.message;
+                state.users = state.users.filter((user) => user._id !== action.payload._id);
+                if (state.selectedUser?._id !== action.payload._id) {
+                    state.selectedUser = null;
+                }
+            })
+            .addCase(deletedUser.rejected, (state, action) => {
+                state.isLoading = false;
+                state.errors = action.payload as string
             })
     },
 });

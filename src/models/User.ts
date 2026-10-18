@@ -1,4 +1,3 @@
-// models/User.ts
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUser extends Document {
@@ -42,7 +41,7 @@ const schema: Schema<IUser> = new Schema({
     imagePublicId: { type: String, default: null },
     dateOfBirth: { type: String },
     city: { type: String, trim: true },
-    password: { type: String, minlength: 6, maxlength: 20, select: false },
+    password: { type: String, minlength: 6, select: false },
     email: { 
         type: String, 
         match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 

@@ -4,13 +4,17 @@ import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
 import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
 import { useAppDispatch, useAppSelector } from '@/features/hooks';
-import { fetchUsers } from '@/features/users/users';
+import { changeUserRole, deletedUser, deleteUsers, fetchUsers } from '@/features/users/users';
 import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast';
+import Register from './register';
+import ChangeRole from './changeRole';
+
+type Role = "author" | "user" | "moderator";
 
 const AuthorList = () => {
     const dispatch = useAppDispatch();
-    const { users, isLoading, errors } = useAppSelector(state => state.users);
+    const { users, isLoading } = useAppSelector(state => state.users);
 
     const [search, setSearch] = useState<string>("");
 
@@ -19,14 +23,15 @@ const AuthorList = () => {
     }, []);
 
     const newAuthorsCount = useMemo(() => {
-        const now = new Date();
-        const sevenDaysAgoe = new Date(now.getTime() - 7 * 24 * 60 * 60 / 1000);
+        if (!Array.isArray(users)) return 0;
 
-        return users.filter((author) => {
-            if (author.role !== "author") return null;
-            const createdAt = new Date(author.createdAt);
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-            return createdAt >= sevenDaysAgoe;
+        return users.filter((user) => {
+            if (user.role !== "author") return false;
+            if (!user.createdAt) return false;
+
+            return new Date(user.createdAt).getTime() >= sevenDaysAgo;
         }).length;
     }, [users]);
 
@@ -49,16 +54,15 @@ const AuthorList = () => {
         })
     }, [users, search]);
 
-    if (errors && !users) {
-        toast.error(errors)
-        return
-    };
-
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [showFormRegister, setShowFormRegister] = useState<boolean>(false);
+    const [showChangeRole, setShowChangeRole] = useState<boolean>(false);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [currentUserRole, setCurrentUserRole] = useState<Role>("user");
 
     const total = authors.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -118,15 +122,46 @@ const AuthorList = () => {
     };
 
     const deleteAllHandel = async () => {
-        console.log('delete all')
+        if (selectedIds.length === 0) return;
+        try {
+            await dispatch(deleteUsers(selectedIds)).unwrap();
+            setSelectedIds([]);
+            dispatch(fetchUsers({}));
+            toast.success("لیست انتخابی باموفقیت حذف شد")
+        } catch (err: any) {
+            toast.error(err)
+            return
+        }
     };
 
-    const confirmSubmitHandle = async () => {
-        console.log("delete",)
+    const confirmDeleteSubmitHandle = async () => {
+        try {
+            await dispatch(deletedUser(userId!)).unwrap();
+            dispatch(fetchUsers({}));
+            setDeleteModal(false);
+            setUserId(null);
+            toast.success("کاربر باموفقیت حذف شد")
+        } catch (err: any) {
+            toast.error(err)
+            return
+        }
     };
 
     const operationCancelled = () => {
         setDeleteModal(false)
+    };
+
+    const changeRoleHandle = async (newRole: Role) => {
+        try {
+            await dispatch(changeUserRole({ _id: userId!, role: newRole })).unwrap();
+            setShowChangeRole(false);
+            setUserId(null);
+            toast.success("نقش باموفقیت تغییر کرد");
+            dispatch(fetchUsers({}))
+        } catch (err: any) {
+            toast.error(err)
+            return
+        }
     };
 
     return (
@@ -139,7 +174,10 @@ const AuthorList = () => {
                         onChange={handleSearchChange}
                     />
                 </div>
-                <button type='button' className='w-34.25 h-8 bg-green-1 text-white cursor-pointer text-[13px] rounded-sm'>افزودن کاربر جدید</button>
+                <button
+                    type='button'
+                    onClick={() => setShowFormRegister(true)}
+                    className='w-34.25 h-8 bg-green-1 text-white cursor-pointer text-[13px] rounded-sm'>افزودن کاربر جدید</button>
             </div>
             <div className="mt-10 flex items-center justify-between gap-x-2 xl:gap-x-4 flex-wrap lg:flex-none">
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -231,11 +269,14 @@ const AuthorList = () => {
                         <button
                             type="button"
                             onClick={deleteAllHandel}
+                            disabled={isLoading}
                             className={`
-                                    cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
-                                    ${selectedIds.length > 0 ? "flex" : "hidden"}
-                                    `}>
-                            حذف انتخابی ها ({selectedIds.length})
+                                   cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px] disabled:bg-red-300 disabled:cursor-no-drop
+                                     ${selectedIds.length > 0 ? "flex" : "hidden"}
+                                `}>
+                            {
+                                isLoading ? <div className="dots"></div> : ` حذف انتخابی ها (${selectedIds.length})`
+                            }
                         </button>
                     </div>
                     <div className="flex gap-x-2 text-[13px]">
@@ -285,6 +326,11 @@ const AuthorList = () => {
                                         <div className='flex items-center justify-center gap-x-2'>
                                             <button
                                                 type="button"
+                                                onClick={() => {
+                                                    setShowChangeRole(true)
+                                                    setCurrentUserRole(user.role as Role || "user")
+                                                    setUserId(user._id)
+                                                }}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -303,7 +349,10 @@ const AuthorList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteModal(true)}
+                                                onClick={() => {
+                                                    setDeleteModal(true);
+                                                    setUserId(user._id)
+                                                }}
                                                 className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -390,9 +439,27 @@ const AuthorList = () => {
             {
                 deleteModal && (
                     <DeleteModal
-                        confirmBtn={confirmSubmitHandle}
+                        confirmBtn={confirmDeleteSubmitHandle}
                         closeBtn={operationCancelled}
                         text='نویسنده'
+                        loading={isLoading}
+                    />
+                )
+            }
+            {
+                showFormRegister && (
+                    <Register
+                        onClose={() => setShowFormRegister(false)}
+                    />
+                )
+            }
+            {
+                showChangeRole && (
+                    <ChangeRole
+                        currentRole={currentUserRole}
+                        onConfirm={changeRoleHandle}
+                        onCancel={() => setShowChangeRole(false)}
+                        loading={isLoading}
                     />
                 )
             }

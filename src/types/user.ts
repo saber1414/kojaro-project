@@ -1,3 +1,4 @@
+export type UserRole = "user" | "author" | "moderator" | "admin";
 export interface User {
     _id: string;
     fullname?: string;
@@ -26,3 +27,12 @@ export interface User {
     createdAt: string;
     updatedAt: string;
 };
+
+export interface CreateUserByAdminPayload {
+    email: string;
+    password: string;
+    role: UserRole;
+    fullname?: string;
+    username?: string;
+    phone?: string;
+}

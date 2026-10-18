@@ -2,18 +2,6 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 import { Article } from "@/types/article";
 import { Pagination } from "@/types/pagination";
-
-export interface FetchArticlesParams {
-    page?: number;
-    limit?: number;
-    search?: string;
-    category?: string;
-    status?: string;
-    author?: string;
-    isFeatured?: string;
-    sort?: "newest" | "oldest" | "views" | "title";
-}
-
 interface ArticleState {
     articles: Article[];
     selectedArticle: Article | null;
@@ -32,8 +20,8 @@ const initialState: ArticleState = {
     successMessaage: null
 };
 
-const fetchArticles = createAsyncThunk("articles/fetchArticles", async (
-    params: FetchArticlesParams = {},
+export const fetchArticles = createAsyncThunk("articles/fetchArticles", async (
+    params: { page?: number; limit?: number; search?: string; category?: string; isValid?: string, author?: string } = {},
     { rejectWithValue }
 ) => {
     try {
@@ -42,12 +30,9 @@ const fetchArticles = createAsyncThunk("articles/fetchArticles", async (
         if (params.limit) query.append("limit", String(params.limit));
         if (params.search) query.append("search", params.search);
         if (params.category) query.append("category", params.category);
-        if (params.status) query.append("status", params.status);
         if (params.author) query.append("author", params.author);
-        if (params.isFeatured) query.append("isFeatured", params.isFeatured);
-        if (params.sort) query.append("sort", params.sort);
 
-        const response = await axios.get(`/api/articles=?${query.toString()}`);
+        const response = await axios.get(`/api/articles?=${query.toString()}`);
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
@@ -55,7 +40,7 @@ const fetchArticles = createAsyncThunk("articles/fetchArticles", async (
     }
 });
 
-const fetchArticle = createAsyncThunk("articles/fetchArticle", async (param: string, { rejectWithValue }) => {
+export const fetchArticle = createAsyncThunk("articles/fetchArticle", async (param: string, { rejectWithValue }) => {
     try {
         const response = await axios.get(`/api/articles/${param}`);
         return response.data;
@@ -65,7 +50,7 @@ const fetchArticle = createAsyncThunk("articles/fetchArticle", async (param: str
     }
 });
 
-const createArticle = createAsyncThunk("articles/createArticle", async (formData: FormData, { rejectWithValue }) => {
+export const createArticle = createAsyncThunk("articles/createArticle", async (formData: FormData, { rejectWithValue }) => {
     try {
         const response = await axios.post("/api/articles", formData, {
             withCredentials: true,
@@ -79,7 +64,7 @@ const createArticle = createAsyncThunk("articles/createArticle", async (formData
     }
 });
 
-const updateArticle = createAsyncThunk("articles/updateArticle", async ({ _id, formData }: { _id: string, formData: FormData }, { rejectWithValue }) => {
+export const updateArticle = createAsyncThunk("articles/updateArticle", async ({ _id, formData }: { _id: string, formData: FormData }, { rejectWithValue }) => {
     try {
         const response = await axios.put(`/api/articles/${_id}`, formData, {
             withCredentials: true,
@@ -93,7 +78,7 @@ const updateArticle = createAsyncThunk("articles/updateArticle", async ({ _id, f
     }
 });
 
-const deleteArticles = createAsyncThunk("articles/deleteArticles", async (ids: string[], { rejectWithValue }) => {
+export const deleteArticles = createAsyncThunk("articles/deleteArticles", async (ids: string[], { rejectWithValue }) => {
     try {
         const response = await axios.delete(`/api/articles/`, {
             data: ids,
@@ -132,7 +117,7 @@ const articlesSlice = createSlice({
             })
             .addCase(fetchArticles.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.articles = action.payload.data?.articles || [];
+                state.articles = action.payload.data?.articles ?? action.payload.data ?? [];
                 state.pagination = action.payload.data?.pagination || null
             })
             .addCase(fetchArticles.rejected, (state, action) => {

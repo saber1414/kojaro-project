@@ -2,99 +2,26 @@
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
+import { fetchArticles } from '@/features/articles/articles';
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react'
-
-const articles = [
-    {
-        _id: "6aa6a4316b74be3571366831",
-        title: "راهنمای سفر به یزد",
-        slug: "travel-guide-yazd",
-        excerpt: "خلاصه کوتاه مقاله درباره یزد",
-        content: "گوی ارزشمند پومودورو که سال‌ها در محوطه پارک ارم رها شده بود، بالاخره پس از جا به جایی و مرمت در باغ موزه زمان تهران رونمایی شد. آیین رونمایی از اثر ارزشمند کره پومودورو هم‌زمان با یکصدمین سال تولد این هنرمند برجسته ایتالیایی، با حضور مدیران موزه‌های بنیاد، رئیس انجمن موزه‌های ایران، رایزن فرهنگی سفارت ایتالیا و جمعی از مسئولان فرهنگی در محل موزه زمان برگزار شد.\n\nاین اثر هنری تراز اول جهان که در دهه پنجاه شمسی خریداری و به تهران منتقل شده بود، پس از سال‌ها استقرار در پارک ارم و آسیب‌های ساختاری متعدد، تحت یک پروژه پژوهشی و درمانی دقیق قرار گرفت.",
-        coverImage: "/images/image01.jpg",
-        coverImagePublicId: null,
-        author: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        category: {
-            _id: "6a91506b7725a714a5b18ed1",
-            name: "مجله گردشگری",
-            slug: "tourism",
-            icon: null
-        },
-        articleCategory: {
-            _id: "6aa6a35870535be588ab315e",
-            name: "جهانگردی",
-            slug: "tourism"
-        },
-        tags: [
-            "یزد",
-            "گردشگری",
-            "کویر"
-        ],
-        status: "draft",
-        isFeatured: false,
-        views: 0,
-        readingTime: 1,
-        metaTitle: null,
-        metaDescription: null,
-        publishedAt: null,
-        dislikeCount: 0,
-        likeCount: 1
-    },
-    {
-        _id: "6aa6a4316b74be3571366834",
-        title: "راهنمای سفر به یزد",
-        slug: "travel-guide-yazd",
-        excerpt: "خلاصه کوتاه مقاله درباره یزد",
-        content: "گوی ارزشمند پومودورو که سال‌ها در محوطه پارک ارم رها شده بود، بالاخره پس از جا به جایی و مرمت در باغ موزه زمان تهران رونمایی شد. آیین رونمایی از اثر ارزشمند کره پومودورو هم‌زمان با یکصدمین سال تولد این هنرمند برجسته ایتالیایی، با حضور مدیران موزه‌های بنیاد، رئیس انجمن موزه‌های ایران، رایزن فرهنگی سفارت ایتالیا و جمعی از مسئولان فرهنگی در محل موزه زمان برگزار شد.\n\nاین اثر هنری تراز اول جهان که در دهه پنجاه شمسی خریداری و به تهران منتقل شده بود، پس از سال‌ها استقرار در پارک ارم و آسیب‌های ساختاری متعدد، تحت یک پروژه پژوهشی و درمانی دقیق قرار گرفت.",
-        coverImage: "/images/image05.jpg",
-        coverImagePublicId: null,
-        author: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        category: {
-            _id: "6a91506b7725a714a5b18ed1",
-            name: "مجله گردشگری",
-            slug: "tourism",
-            icon: null
-        },
-        articleCategory: {
-            _id: "6aa6a35870535be588ab315e",
-            name: "جهانگردی",
-            slug: "tourism"
-        },
-        tags: [
-            "یزد",
-            "گردشگری",
-            "کویر"
-        ],
-        status: "published",
-        isFeatured: false,
-        views: 0,
-        readingTime: 1,
-        metaTitle: null,
-        metaDescription: null,
-        publishedAt: null,
-        dislikeCount: 0,
-        likeCount: 1
-    }
-];
+import React, { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast';
 
 const ArticlesList = () => {
-    const [search, setSearch] = useState("");
-    const [page, setPage] = useState<number>(1);
-    const [limit, setLimit] = useState<number>(10);
+    const dispatch = useAppDispatch();
+    const { articles, isLoading, errors } = useAppSelector(state => state.articles);
 
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [search, setSearch] = useState<string>("");
+
+    useEffect(() => {
+        dispatch(fetchArticles({ page, limit })).unwrap()
+    }, []);
+
+    useEffect(() => {
+        if (errors) toast.error(errors);
+    }, [errors]);
 
     const allArticles = useMemo(() => {
         const onlyArticles = articles;
@@ -105,7 +32,7 @@ const ArticlesList = () => {
         return onlyArticles.filter((article) => {
             const title = (article.title || "").toLowerCase();
             const slug = (article.slug || "").toLowerCase();
-            const author = (article.author.fullname || article.author.username)
+            const author = (article.author?.fullname || article.author?.username || "").toLowerCase();
 
             return (
                 title.includes(q) ||
@@ -115,14 +42,30 @@ const ArticlesList = () => {
         });
     }, [articles, search]);
 
+    const newArticlesCount = useMemo(() => {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 / 1000);
+
+        return articles.filter((article) => {
+            const createdAt = new Date(article.createdAt!);
+
+            return createdAt >= sevenDaysAgo
+        }).length
+    }, []);
+
+    const [page, setPage] = useState<number>(1);
+    const [limit, setLimit] = useState<number>(10);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [deleteModal, setDeleteModal] = useState<boolean>(false);
+
     const total = allArticles.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const currentPage = Math.min(page, totalPages);
 
     const paginatedArticles = useMemo(() => {
         const start = (currentPage - 1) * limit;
-        return allArticles.slice(start, start + limit);
-    }, [articles, currentPage, limit]);
+        return allArticles.slice(start, start + limit)
+    }, [allArticles, currentPage, limit]);
 
     const startItem = total === 0 ? 0 : (currentPage - 1) * limit + 1;
     const endItem = Math.min(currentPage * limit, total);
@@ -136,10 +79,10 @@ const ArticlesList = () => {
 
         const base = [5, 10, 20, 50];
         const options = base.filter((n) => n < totalCount);
-        if(!options.includes(totalCount)) options.push(totalCount);
+        if (!options.includes(totalCount)) options.push(totalCount);
 
         return options.length ? options : [totalCount];
-    }, [allArticles]);
+    }, [allArticles.length]);
 
     const handleLimitChange = (value: number) => {
         setLimit(value);
@@ -147,7 +90,8 @@ const ArticlesList = () => {
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value)
+        setSearch(e.target.value);
+        setPage(1)
     };
 
     const pageIds = useMemo(() =>
@@ -155,8 +99,8 @@ const ArticlesList = () => {
         [paginatedArticles]
     );
 
-    const isAllPageSelected = pageIds.length > 0 && pageIds.every((_id) => selectedIds.includes(_id));
-    const isSomePageSlected = pageIds.some((_id) => selectedIds.includes(_id) && !isAllPageSelected);
+    const isAllPageSelected = pageIds.length > 0 && pageIds.every((_id) => selectedIds.includes(_id!));
+    const isSomePageSlected = pageIds.some((_id) => selectedIds.includes(_id!) && !isAllPageSelected);
 
     const toggleSelectedOne = (_id: string) => {
         setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
@@ -164,9 +108,9 @@ const ArticlesList = () => {
 
     const toggleSelectAllPage = () => {
         if (isAllPageSelected) {
-            setSelectedIds((prev) => prev.filter((_id) => !pageIds.includes(_id)));
+            setSelectedIds((prev) => prev.filter((_id) => !pageIds.includes(_id)))
         } else {
-            setSelectedIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+            setSelectedIds((prev: any) => Array.from(new Set([...prev, ...pageIds])))
         }
     };
 
@@ -209,7 +153,7 @@ const ArticlesList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کل مقالات</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {articles.length}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -232,7 +176,7 @@ const ArticlesList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>مقالات جدید</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newArticlesCount}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -283,7 +227,7 @@ const ArticlesList = () => {
                 </div>
             </div>
             {
-                allArticles.length ? (
+                paginatedArticles.length ? (
                     <div className="mt-10 bg-white p-4 rounded-lg">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-x-4">
@@ -330,17 +274,22 @@ const ArticlesList = () => {
                                         <div className="flex items-center justify-center">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedIds.includes(article._id)}
-                                                onChange={() => toggleSelectedOne(article._id)}
+                                                checked={selectedIds.includes(article._id!)}
+                                                onChange={() => toggleSelectedOne(article._id!)}
                                                 className='w-4 h-4 rounded accent-green-1 border-gray-300 cursor-pointer' />
                                         </div>
                                         <div>{index + 1}</div>
                                         <div>{article.title}</div>
                                         <div className='flex justify-center'>
-                                            <img src={article.coverImage || "--"} className='w-20 rounded-sm' alt="article image" />
+                                            {
+                                                article.coverImage ?
+                                                    <img src={article.coverImage} className='w-20 rounded-sm' alt={article.title} />
+                                                    :
+                                                    <img src="/images/emptyImage.png" className='w-20 rounded-sm' alt="article image" />
+                                            }
                                         </div>
-                                        <div>{article.author.fullname}</div>
-                                        <div>{article.articleCategory.name}</div>
+                                        <div>{article.author?.fullname}</div>
+                                        <div>{article.category?.name}</div>
                                         <div className={`
                                                 h-8 text-[13px] flex items-center justify-center
                                                 ${article.status === "draft" && "bg-amber-100" ||
@@ -467,13 +416,15 @@ const ArticlesList = () => {
                             </div>
                         </div>
                     </div>
+                ) : isLoading ? (
+                    <TableSkeleton rows={5} />
                 ) : (
                     <EmptyPage text='مقالات' name='مقاله' />
                 )
             }
             {
                 deleteModal && (
-                    <DeleteModal 
+                    <DeleteModal
                         confirmBtn={confirmSubmitHandle}
                         closeBtn={operationCancelled}
                         text='مقاله'

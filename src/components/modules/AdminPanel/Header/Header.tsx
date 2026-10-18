@@ -26,7 +26,6 @@ const Header = () => {
         </button>
         <div className="hidden lg:block">
           <h3 className="text-[14px] font-IRANYekan-Light">مدیر گرامی به پنل مدیریت خوش آمدید</h3>
-          <Breadcrumb />
         </div>
         <div className="flex items-center gap-x-8 flex-row-reverse">
           <div className="flex items-center gap-x-6 flex-row-reverse">

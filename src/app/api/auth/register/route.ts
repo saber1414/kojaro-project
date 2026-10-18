@@ -1,4 +1,3 @@
-// app/api/auth/register/route.ts
 import ConnectedDB from "@/lib/db";
 import { registerSchema } from "@/validations/userSchema";
 import { hashedPassword } from "@/utils/auth";

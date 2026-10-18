@@ -4,9 +4,10 @@ type DeleteModalProps = {
     confirmBtn: () => void;
     closeBtn: () => void;
     text: string;
+    loading: boolean
 }
 
-const DeleteModal = ({ closeBtn, confirmBtn, text }: DeleteModalProps) => {
+const DeleteModal = ({ closeBtn, confirmBtn, text, loading }: DeleteModalProps) => {
     return (
         <div
             onClick={closeBtn}
@@ -39,8 +40,12 @@ const DeleteModal = ({ closeBtn, confirmBtn, text }: DeleteModalProps) => {
                     <button
                         type="button"
                         onClick={confirmBtn}
+                        disabled={loading}
                         className='cursor-pointer w-48.75 flex mx-2 rounded-full h-8 items-center justify-center bg-white shadow'>
-                        <span className='text-[13px] text-gray-500'>بله، حذف شود</span>
+                        {
+                            loading ? <div className='dots2'></div> :
+                                <span className='text-[13px] text-gray-500'>بله، حذف شود</span>
+                        }
                     </button>
                     <button
                         type="button"

@@ -12,7 +12,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
         await ConnectedDB();
 
         const admin = await authenticate(req);
-        if (!admin || admin.role === "admin") {
+        if (!admin || admin.role !== "admin") {
             return NextResponse.json({
                 success: false,
                 message: "فقط مدیر مجاز به تغییر نقش کاربران می باشد"
@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
             }, { status: 400 })
         };
 
-        if (!role || ALLOWED_ROLES.includes(role)) {
+        if (!role || !ALLOWED_ROLES.includes(role)) {
             return NextResponse.json({
                 success: false,
                 message: `نقش معتبر نیست. نقش‌های مجاز: ${ALLOWED_ROLES.join(", ")}`
@@ -75,11 +75,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
             }, { status: 400 })
         };
 
-        user.role as Role;
+        user.role = role;
         await user.save();
 
         return NextResponse.json({
-            success: false,
+            success: true,
             message: "نقش کاربر با موفقیت تغییر یافت",
             data: {
                 _id: user._id,

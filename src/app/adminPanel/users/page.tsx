@@ -1,6 +1,6 @@
 import Aside from '@/components/modules/AdminPanel/Aside/Aside';
 import Header from '@/components/modules/AdminPanel/Header/Header';
-import UserList from '@/components/templates/AdminPanel/users/users';
+import UserList from '@/components/templates/AdminPanel/usersList/users';
 
 const Users = () => {
     return (
