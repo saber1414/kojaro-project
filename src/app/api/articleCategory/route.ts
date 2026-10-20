@@ -3,6 +3,7 @@ import { authenticate } from "@/middlewares/auth";
 import { articleCategorySchema } from "@/validations/articleCategorySchema";
 import { ArticleCategory } from "@/models/Index"
 import { NextRequest, NextResponse } from "next/server";
+import { Types } from "mongoose";
 
 export async function GET(req: NextRequest) {
     try {
@@ -103,4 +104,85 @@ export async function POST(req: NextRequest) {
             errors: err
         }, { status: 500 })
     }
-}
+};
+
+export async function DELETE(req: NextRequest) {
+    try {
+        await ConnectedDB();
+
+        const user = await authenticate(req);
+        if (!user || !["admin", "author"].includes(user.role)) {
+            return NextResponse.json({
+                success: false,
+                message: "دسترسی غیرمجاز می باشد"
+            }, { status: 401 })
+        };
+
+        const body = await req.json();
+
+        const { ids } = body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "شناسه معتبر نیست"
+            }, { status: 400 })
+        };
+
+        const validIds = ids.filter((id) => Types.ObjectId.isValid(id));
+
+        if (validIds.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "شناسه معتبر نیست"
+            }, { status: 400 })
+        };
+
+        const articlesCategory = await ArticleCategory.find({
+            _id: { $in: validIds }
+        }).select("_id author coverImage");
+
+        if (!articlesCategory) {
+            return NextResponse.json({
+                success: false,
+                message: "دسته بندی مقاله یافت نشد"
+            }, { status: 404 })
+        };
+
+        let allowed = articlesCategory;
+
+        if (user.role === "author") {
+            const userId = user._id.toString();
+
+            allowed = articlesCategory.filter((category) => {
+                const ownerId = category.author !== null ?
+                    typeof category.author === "object" ? (category.author)._id?.toString() ?? String(category.author) : String(category.author) : null;
+
+                return ownerId === userId
+            })
+        };
+
+        if (allowed.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "شما فقط می توانید دسته بندی خودتان را حذف کنید"
+            }, { status: 403 })
+        };
+
+        const result = await ArticleCategory.deleteMany({
+            _id: { $in: validIds }
+        });
+
+        return NextResponse.json({
+            success: false,
+            message: "دسته بندی مقاله باموفقیت حذف شد",
+            data: result
+        }, { status: 200 });
+    } catch (err: any) {
+        console.log("Error Delete Category =>", err);
+        return NextResponse.json({
+            success: false,
+            message: "خطا در حذف دسته بندی"
+        }, { status: 500 })
+    }
+};

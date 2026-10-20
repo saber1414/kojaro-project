@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
-import { ArticleCategories } from "@/types/articleCategories";
+import { ArticleCategories, CreateArticleCategoryPayload } from "@/types/articleCategories";
 import { Pagination } from "@/types/pagination";
 
 export interface ArticleCategoriesState {
@@ -24,9 +24,17 @@ const initialState: ArticleCategoriesState = {
 };
 
 
-export const fetchCategories = createAsyncThunk("articleCategories/ fetchCategories", async (_, { rejectWithValue }) => {
+export const fetchCategories = createAsyncThunk("articleCategories/ fetchCategories", async (
+    params: { page?: number, limit?: number, search?: string },
+    { rejectWithValue }
+) => {
     try {
-        const response = await axios.get(`/api/articleCategory`);
+        const query = new URLSearchParams();
+        query.append("page", String(params.page ?? 1));
+        query.append("limit", String(params.limit ?? 100));
+        if (params.search) query.append("search", String(params.search));
+
+        const response = await axios.get(`/api/articleCategory?${query.toString()}`);
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
@@ -45,11 +53,11 @@ export const fetchByArticleCategories = createAsyncThunk("articleCategories/fetc
 });
 
 export const createArticleCategories = createAsyncThunk("articleCategories/createArticleCategories", async (
-    data: ArticleCategories,
+    data: CreateArticleCategoryPayload,
     { rejectWithValue }
 ) => {
     try {
-        const response = await axios.post(`/api/articleCategory`, { data }, { withCredentials: true });
+        const response = await axios.post(`/api/articleCategory`, data, { withCredentials: true });
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
@@ -57,22 +65,44 @@ export const createArticleCategories = createAsyncThunk("articleCategories/creat
     }
 });
 
-export const editArticleCategories = createAsyncThunk("articleCategories/editArticleCategories", async (
-    { _id, data }: { _id: string, data: ArticleCategories },
-    { rejectWithValue }
-) => {
-    try {
-        const response = await axios.put(`/api/articleCategory/${_id}`, { data }, { withCredentials: true });
-        return response.data;
-    } catch (err: any) {
-        const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError.response?.data?.message)
+export const editArticleCategories = createAsyncThunk(
+    "articleCategories/editArticleCategories",
+    async (
+        { _id, data }: { _id: string; data: CreateArticleCategoryPayload },
+        { rejectWithValue }
+    ) => {
+        try {
+            const response = await axios.put(
+                `/api/articleCategory/${_id}`,
+                data,
+                { withCredentials: true }
+            );
+            return response.data;
+        } catch (err: unknown) {
+            const axiosError = err as AxiosError<{ message?: string }>;
+            return rejectWithValue(
+                axiosError.response?.data?.message || "خطا در ویرایش"
+            );
+        }
     }
-});
+);
 
 export const deletedArticleCategories = createAsyncThunk("articleCategories/deletedArticleCategories", async (_id: string, { rejectWithValue }) => {
     try {
         const response = await axios.delete(`/api/articleCategory/${_id}`, { withCredentials: true });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>;
+        return rejectWithValue(axiosError.response?.data?.message)
+    }
+});
+
+export const deletedArticlesCategory = createAsyncThunk("articleCategories/deletedArticlesCategory", async (ids: string[], { rejectWithValue }) => {
+    try {
+        const response = await axios.delete(`/api/articleCategory`, {
+            data: ids,
+            withCredentials: true
+        });
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
@@ -176,6 +206,22 @@ const articleCategoriesSlice = createSlice({
                 }
             })
             .addCase(deletedArticleCategories.rejected, (state, action) => {
+                state.isUpdated = false;
+                state.error = action.payload as string;
+            })
+            .addCase(deletedArticlesCategory.pending, (state) => {
+                state.isUpdated = true;
+                state.error = null;
+            })
+            .addCase(deletedArticlesCategory.fulfilled, (state, action) => {
+                state.isUpdated = false;
+                state.successMessage = action.payload?.message;
+                state.articleCategories = state.articleCategories.filter((category) => category._id !== action.payload?._id);
+                if (state.selectedArticleCategories?._id === action.payload._id) {
+                    state.selectedArticleCategories = null
+                }
+            })
+            .addCase(deletedArticlesCategory.rejected, (state, action) => {
                 state.isUpdated = false;
                 state.error = action.payload as string;
             })

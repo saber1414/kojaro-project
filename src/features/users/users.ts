@@ -29,13 +29,13 @@ export const fetchUsers = createAsyncThunk(
     ) => {
         try {
             const query = new URLSearchParams();
-            if (params.page) query.append("page", String(params.page));
-            if (params.limit) query.append("limit", String(params.limit));
+            query.append("page", String(params.page ?? 1));
+            query.append("limit", String(params.limit ?? 100));
             if (params.search) query.append("search", String(params.search));
             if (params.role) query.append("role", String(params.role));
             if (params.isValid) query.append("isValid", String(params.isValid));
 
-            const response = await axios.get(`/api/users?=${query.toString()}`, { withCredentials: true });
+            const response = await axios.get(`/api/users?${query.toString()}`, { withCredentials: true });
 
             return response.data;
         } catch (err: any) {

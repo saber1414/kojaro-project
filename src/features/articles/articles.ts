@@ -92,6 +92,16 @@ export const deleteArticles = createAsyncThunk("articles/deleteArticles", async 
     }
 });
 
+export const deleteArticle = createAsyncThunk("articles/deleteArticle", async (_id: string, { rejectWithValue }) => {
+    try {
+        const response = await axios.delete(`/api/articles/${_id}`, { withCredentials: true });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>
+        return rejectWithValue(axiosError.response?.data?.message)
+    }
+});
+
 const articlesSlice = createSlice({
     name: "articles",
     initialState,
@@ -199,6 +209,22 @@ const articlesSlice = createSlice({
             .addCase(deleteArticles.rejected, (state, action) => {
                 state.isLoading = false;
                 state.errors = action.payload as string;
+            })
+            .addCase(deleteArticle.pending, (state) => {
+                state.isLoading = true;
+                state.errors = null;
+            })
+            .addCase(deleteArticle.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.successMessaage = action.payload.data?.message;
+                state.articles = state.articles.filter((article) => article._id !== action.payload._id);
+                if (state.selectedArticle?._id === action.payload._id) {
+                    state.selectedArticle = null
+                }
+            })
+            .addCase(deleteArticle.rejected, (state, action) => {
+                state.isLoading = false;
+                state.errors = action.payload as string
             })
     },
 });

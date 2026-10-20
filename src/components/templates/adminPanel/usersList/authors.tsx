@@ -271,7 +271,7 @@ const AuthorList = () => {
                             onClick={deleteAllHandel}
                             disabled={isLoading}
                             className={`
-                                   cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px] disabled:bg-red-300 disabled:cursor-no-drop
+                                   cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:opacity-50 text-white  items-center justify-center text-[13px] disabled:bg-red-300 disabled:cursor-no-drop
                                      ${selectedIds.length > 0 ? "flex" : "hidden"}
                                 `}>
                             {

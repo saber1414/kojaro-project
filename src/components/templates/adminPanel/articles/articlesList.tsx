@@ -3,7 +3,7 @@ import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
 import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
-import { fetchArticles } from '@/features/articles/articles';
+import { deleteArticle, deleteArticles, fetchArticles } from '@/features/articles/articles';
 import { useAppDispatch, useAppSelector } from '@/features/hooks';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react'
@@ -11,17 +11,13 @@ import toast from 'react-hot-toast';
 
 const ArticlesList = () => {
     const dispatch = useAppDispatch();
-    const { articles, isLoading, errors } = useAppSelector(state => state.articles);
+    const { articles, isLoading } = useAppSelector(state => state.articles);
 
     const [search, setSearch] = useState<string>("");
 
     useEffect(() => {
         dispatch(fetchArticles({ page, limit })).unwrap()
     }, []);
-
-    useEffect(() => {
-        if (errors) toast.error(errors);
-    }, [errors]);
 
     const allArticles = useMemo(() => {
         const onlyArticles = articles;
@@ -57,6 +53,7 @@ const ArticlesList = () => {
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [articleId, setArticleId] = useState<string | null>(null);
 
     const total = allArticles.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -114,8 +111,30 @@ const ArticlesList = () => {
         }
     };
 
-    const confirmSubmitHandle = async () => {
-        console.log("delete",)
+    const deleteAllArticlesHandel = async () => {
+        if (selectedIds.length === 0) return null;
+        try {
+            await dispatch(deleteArticles(selectedIds)).unwrap();
+            dispatch(fetchArticles({}));
+            setSelectedIds([]);
+            toast.success("لیست انتخابی باموفقیت حذف شد");
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
+    }
+
+    const confirmDeleteSubmitHandle = async () => {
+        try {
+            await dispatch(deleteArticle(articleId!)).unwrap();
+            dispatch(fetchArticles({}));
+            toast.success("مقاله باموفقیت حذف شد");
+            setArticleId(null);
+            setDeleteModal(false);
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
     };
 
     const operationCancelled = () => {
@@ -234,8 +253,10 @@ const ArticlesList = () => {
                                 <h4 className='text-[14px] font-IRANYekan-Bold'>کل مقالات</h4>
                                 <button
                                     type="button"
+                                    disabled={isLoading}
+                                    onClick={deleteAllArticlesHandel}
                                     className={`
-                                    cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
+                                    cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px] disabled:bg-red-400 disabled:cursor-no-drop
                                     ${selectedIds.length > 0 ? "flex" : "hidden"}
                                     `}>
                                     حذف انتخابی ها ({selectedIds.length})
@@ -338,7 +359,10 @@ const ArticlesList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteModal(true)}
+                                                onClick={() => {
+                                                    setDeleteModal(true);
+                                                    setArticleId(article._id!)
+                                                }}
                                                 className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -425,9 +449,10 @@ const ArticlesList = () => {
             {
                 deleteModal && (
                     <DeleteModal
-                        confirmBtn={confirmSubmitHandle}
+                        confirmBtn={confirmDeleteSubmitHandle}
                         closeBtn={operationCancelled}
                         text='مقاله'
+                        loading={isLoading}
                     />
                 )
             }

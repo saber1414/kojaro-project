@@ -313,3 +313,67 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ para
         })
     }
 };
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ param: string }> }) {
+    try {
+        await ConnectedDB();
+
+        const user = await authenticate(req);
+        if (!user || !["admin", "author"].includes(user.role)) {
+            return NextResponse.json({
+                success: false,
+                message: "دسترسی غیرمجاز"
+            }, { status: 401 })
+        };
+
+        const { param } = await params;
+
+        if (!isObjectId(param)) {
+            return NextResponse.json({
+                succcess: false,
+                message: "شناسه معتبر نیست"
+            }, { status: 400 })
+        };
+
+        const article = await Article.findById(param);
+        if (!article) {
+            return NextResponse.json({
+                success: false,
+                message: "مقاله یافت نشد",
+            }, { status: 404 })
+        };
+
+        if (user.role === "author") {
+            const authorId = typeof article.author === "object" && article.author !== null ?
+                article.author._id.toString() ?? article.author.toString()
+                :
+                String(article.author);
+
+            if (authorId !== user._id.toString()) {
+                return NextResponse.json({
+                    success: false,
+                    message: "شما فقط می توانید مقالات خودتان را حذف کنید"
+                }, { status: 403 })
+            }
+        };
+
+        if (article.coverImage) {
+            const oldPath = path.join(process.cwd(), "public", article.coverImage);
+            await fs.unlink(oldPath).catch(() => { })
+        };
+
+        await Article.findByIdAndDelete(param);
+
+        return NextResponse.json({
+            success: false,
+            message: "مقاله باموفقیت حذف شد"
+        }, { status: 200 })
+    } catch (err: any) {
+        console.log("Error Delete Article =>", err);
+        return NextResponse.json({
+            success: false,
+            message: "خطا در حذف مقاله",
+            error: err
+        }, { status: 500 })
+    }
+};

@@ -1,26 +1,23 @@
 "use client"
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CreateArticleCategory from './createCategory';
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
 import EditCategory from './editCategory';
-
-const articleCategories = [
-    { _id: "1", name: "دسته بندی 1", slug: "/category" },
-    { _id: "2", name: "دسته بندی 2", slug: "/category2" },
-    { _id: "3", name: "دسته بندی 3", slug: "/category3" },
-    { _id: "4", name: "دسته بندی 4", slug: "/category4" },
-    { _id: "5", name: "دسته بندی 5", slug: "/category5" },
-    { _id: "6", name: "دسته بندی 6", slug: "/category6" },
-    { _id: "7", name: "دسته بندی 7", slug: "/category7" },
-    { _id: "8", name: "دسته بندی 8", slug: "/category8" },
-    { _id: "9", name: "دسته بندی 9", slug: "/category9" },
-    { _id: "10", name: "دسته بندی 10", slug: "/category10" },
-    { _id: "11", name: "دسته بندی 11", slug: "/category11" },
-]
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { deletedArticleCategories, deletedArticlesCategory, fetchCategories } from '@/features/articleCategories/articleCategories';
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
+import toast from 'react-hot-toast';
 
 const ArticleCategoriesList = () => {
+    const dispatch = useAppDispatch();
+    const { articleCategories, isLoading, isUpdated } = useAppSelector(state => state.articleCategories);
+
+    useEffect(() => {
+        dispatch(fetchCategories({})).unwrap()
+    }, []);
+
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
@@ -28,6 +25,7 @@ const ArticleCategoriesList = () => {
     const [createModel, setCreateModel] = useState<boolean>(false);
     const [editModal, setEditModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [categoryId, setCategoryId] = useState<string | null>(null);
 
     const allCategories = useMemo(() => {
         const onlyCategories = articleCategories;
@@ -100,16 +98,34 @@ const ArticleCategoriesList = () => {
         setSearch(e.target.value)
     };
 
-    const createCategoryHandel = async () => {
-        console.log('create category')
-    };
-
     const editCategoryHandel = async () => {
         console.log('edit category')
-    }
+    };
 
-    const confirmSubmitHandle = async () => {
-        console.log("delete",)
+    const deleteSelectedHandel = async () => {
+        if (selectedIds.length === 0) return;
+        try {
+            await dispatch(deletedArticlesCategory(selectedIds)).unwrap();
+            dispatch(fetchCategories({}));
+            setSelectedIds([]);
+            toast.success("لیست دسته بندی حذف شد")
+        } catch (err: any) {
+            toast.error(err)
+            return;
+        }
+    };
+
+    const confirmDeleteSubmitHandle = async () => {
+        try {
+            await dispatch(deletedArticleCategories(categoryId!)).unwrap();
+            dispatch(fetchCategories({}));
+            setCategoryId(null);
+            setDeleteModal(false);
+            toast.success("دسته بندی باموفقیت حذف شد")
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
     };
 
     return (
@@ -225,8 +241,10 @@ const ArticleCategoriesList = () => {
                                 <h4 className='text-[14px] font-IRANYekan-Bold'>کل مقالات</h4>
                                 <button
                                     type="button"
+                                    onClick={deleteSelectedHandel}
+                                    disabled={isUpdated}
                                     className={`
-                                    cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
+                                    cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px] disabled:opacity-50 disabled:cursor-no-drop
                                     ${selectedIds.length > 0 ? "flex" : "hidden"}
                                     `}>
                                     حذف انتخابی ها ({selectedIds.length})
@@ -272,7 +290,10 @@ const ArticleCategoriesList = () => {
                                         <div className='flex items-center justify-center gap-x-2'>
                                             <button
                                                 type="button"
-                                                onClick={() => setEditModal(true)}
+                                                onClick={() => {
+                                                    setEditModal(true)
+                                                    setCategoryId(category._id)
+                                                }}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -291,7 +312,10 @@ const ArticleCategoriesList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteModal(true)}
+                                                onClick={() => {
+                                                    setDeleteModal(true);
+                                                    setCategoryId(category._id)
+                                                }}
                                                 className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -369,6 +393,8 @@ const ArticleCategoriesList = () => {
                             </div>
                         </div>
                     </div>
+                ) : isLoading ? (
+                    <TableSkeleton rows={5} />
                 ) : (
                     <EmptyPage name='دسته بندی' text='دسته بندی ها' />
                 )
@@ -376,25 +402,33 @@ const ArticleCategoriesList = () => {
             {
                 createModel && (
                     <CreateArticleCategory
-                        confirm={createCategoryHandel}
-                        onCancle={() => setCreateModel(false)}
+                        onSuccess={() => {
+                            setCreateModel(false)
+                            dispatch(fetchCategories({}))
+                        }}
+                        onClose={() => setCreateModel(false)}
                     />
                 )
             }
             {
                 deleteModal && (
                     <DeleteModal
-                        confirmBtn={confirmSubmitHandle}
+                        confirmBtn={confirmDeleteSubmitHandle}
                         closeBtn={() => setDeleteModal(false)}
                         text='دسته بندی'
+                        loading={isLoading}
                     />
                 )
             }
             {
                 editModal && (
                     <EditCategory
-                        confirm={editCategoryHandel}
-                        onCancle={() => setEditModal(false)}
+                        _id={categoryId}
+                        onSuccess={() => {
+                            setEditModal(false);
+                            dispatch(fetchCategories({}))
+                        }}
+                        onClose={() => setEditModal(false)}
                     />
                 )
             }
