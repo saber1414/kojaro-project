@@ -1,57 +1,24 @@
 "use client"
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
-import DetailsMenu from '@/components/templates/AdminPanel/menus/DetailsMenu';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import React, { useMemo, useState } from 'react'
-import CreateMenu from './CreateMenu';
-import EditMenu from './EditMenu';
-
-const menus = [
-  {
-    _id: "6a91506b7725a714a5b18ed1",
-    name: "مجله گردشگری",
-    slug: "tourism",
-    parentId: null,
-    children: [
-      {
-        _id: "6abe9f21c52f5aed19886394",
-        name: "ایرانگردی",
-        slug: "iran-tourism",
-        parentId: "6a91506b7725a714a5b18ed1",
-        children: [],
-        icon: null,
-        createdAt: "2026-10-01T17:57:53.839Z",
-        updatedAt: "2026-10-01T17:57:53.839Z"
-      },
-      {
-        _id: "6abe9f21c52f5aed19886399",
-        name: "گردشگری",
-        slug: "tourism",
-        parentId: "6a91506b7725a714a5b18ed1",
-        children: [],
-        icon: null,
-        createdAt: "2026-11-01T17:57:53.839Z",
-        updatedAt: "2026-11-01T17:57:53.839Z"
-      }
-    ],
-    icon: null,
-    createdAt: "2026-08-28T09:10:03.075Z",
-    updatedAt: "2026-08-28T09:10:03.075Z"
-  },
-  {
-    _id: "6a91506b7725a714a5b18ed2",
-    name: "اخبار",
-    slug: "news",
-    parentId: null,
-    children: [],
-    icon: null,
-    createdAt: "2026-08-29T09:10:03.075Z",
-    updatedAt: "2026-08-29T09:10:03.075Z"
-  }
-];
+import React, { useEffect, useMemo, useState } from 'react'
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { deletedMenu, fetchMenus } from '@/features/menus/menus';
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
+import DetailsMenu from './detailsMenu';
+import EditMenu from './editMenu';
+import CreateMenu from './createMenu';
+import toast from 'react-hot-toast';
 
 const MenuList = () => {
+  const dispatch = useAppDispatch();
+  const { menus, isLoading, isUpdated } = useAppSelector(state => state.menus);
+
+  useEffect(() => {
+    dispatch(fetchMenus()).unwrap();
+  }, []);
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
@@ -60,7 +27,8 @@ const MenuList = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [createMenuModal, setCreateMenuModal] = useState<boolean>(false);
   const [editMenuModal, setEditMenuModal] = useState<boolean>(false);
-  const [deeleteModal, setDeleteModal] = useState<boolean>(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [menuId, setMenuId] = useState<string | null>(null);
 
   const allMenus = useMemo(() => {
     const onlyMenus = menus;
@@ -136,17 +104,19 @@ const MenuList = () => {
     setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
   };
 
-  const handleDeleteBtn = async () => {
-    console.log('delete ')
+  const handleDeleteModal = async () => {
+    try {
+      await dispatch(deletedMenu(menuId!)).unwrap();
+      toast.success("منو باموفقیت حذف شد");
+      dispatch(fetchMenus());
+      setMenuId(null);
+      setDeleteModal(false);
+    } catch (err: any) {
+      toast.error(err);
+      return null
+    };
   };
 
-  const createMenuHandel = async () => {
-    console.log('create menu');
-  };
-
-  const editMenuHandel = async () => {
-    console.log('edit menu')
-  };
 
   return (
     <>
@@ -238,7 +208,7 @@ const MenuList = () => {
         </div>
       </div>
       {
-        allMenus.length ? (
+        paginatedMenus.length ? (
           <div className="mt-10 bg-white p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-4">
@@ -290,7 +260,7 @@ const MenuList = () => {
                     </div>
                     <div className='flex items-center justify-center gap-x-2'>
                       {
-                        menu.children.length > 0 && (
+                        (menu.children?.length || 0) > 0 && (
                           <button
                             type="button"
                             onClick={() => detailsSubMenuHandle(menu._id)}
@@ -310,7 +280,10 @@ const MenuList = () => {
                       }
                       <button
                         type="button"
-                        onClick={() => setEditMenuModal(true)}
+                        onClick={() => {
+                          setEditMenuModal(true);
+                          setMenuId(menu._id)
+                        }}
                         className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                         <svg
                           width='16'
@@ -329,7 +302,10 @@ const MenuList = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setDeleteModal(true)}
+                        onClick={() => {
+                          setDeleteModal(true);
+                          setMenuId(menu._id)
+                        }}
                         className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                         <svg
                           width='16'
@@ -407,41 +383,55 @@ const MenuList = () => {
               </div>
             </div>
           </div>
+        ) : isLoading ? (
+          <TableSkeleton />
         ) : (
           <EmptyPage text='منوهای' name='منو' />
         )
       }
       {
-        isDetails && (
-          <DetailsMenu
-            closeBtn={() => setIsDetails(false)}
-            menus={allMenus}
-            _id={subMenuId!}
-          />
-        )
-      }
-      {
-        deeleteModal && (
+        deleteModal && (
           <DeleteModal
             closeBtn={() => setDeleteModal(false)}
-            confirmBtn={handleDeleteBtn}
+            confirmBtn={handleDeleteModal}
+            loading={isUpdated}
             text='منو'
           />
         )
       }
       {
-        createMenuModal && (
-          <CreateMenu
-            confirm={createMenuHandel}
-            closeBtn={() => setCreateMenuModal(false)}
+        isDetails && (
+          <DetailsMenu
+            menus={menus}
+            _id={subMenuId!}
+            closeBtn={() => setIsDetails(false)}
+            onSuccess={() => {
+              setIsDetails(false);
+              setSubMenuId(null);
+            }}
           />
         )
       }
       {
         editMenuModal && (
           <EditMenu
-            confirm={editMenuHandel}
             closeBtn={() => setEditMenuModal(false)}
+            onSuccess={() => {
+              dispatch(fetchMenus());
+              setEditMenuModal(false);
+            }}
+            _id={menuId!}
+          />
+        )
+      }
+      {
+        createMenuModal && (
+          <CreateMenu
+            closeBtn={() => setCreateMenuModal(false)}
+            onSuccess={() => {
+              dispatch(fetchMenus())
+              setCreateMenuModal(false)
+            }}
           />
         )
       }

@@ -22,7 +22,7 @@ const initialState: MenuState = {
 
 export const fetchMenus = createAsyncThunk("categories/fetchMenus", async (_, { rejectWithValue }) => {
     try {
-        const response = await axios.get("/pi/categories");
+        const response = await axios.get("/api/categories");
         return response.data;
     } catch (err: any) {
         const errorMessage = err as AxiosError<any>
@@ -69,9 +69,9 @@ export const editMenu = createAsyncThunk("categories/editMenu", async (
     }
 });
 
-export const deletedMenus = createAsyncThunk("categories/deletedMenus", async (_id: string, { rejectWithValue }) => {
+export const deletedMenu = createAsyncThunk("categories/deletedMenu", async (_id: string, { rejectWithValue }) => {
     try {
-        const response = await axios.delete(`/api/categpries/${_id}`, { withCredentials: true });
+        const response = await axios.delete(`/api/categories/${_id}`, { withCredentials: true });
         return response.data;
     } catch (err: any) {
         const errorMessage = err as AxiosError<any>
@@ -104,7 +104,8 @@ const menusSlice = createSlice({
             })
             .addCase(fetchMenus.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.menus = action.payload.data?.articles || [];
+                const payload = action.payload?.data;
+                state.menus = Array.isArray(payload) ? payload : payload?.menus ?? [];
             })
             .addCase(fetchMenus.rejected, (state, action) => {
                 state.isLoading = false;
@@ -155,11 +156,11 @@ const menusSlice = createSlice({
                 state.isUpdated = false;
                 state.error = action.payload as string;
             })
-            .addCase(deletedMenus.pending, (state) => {
+            .addCase(deletedMenu.pending, (state) => {
                 state.isUpdated = true;
                 state.error = null
             })
-            .addCase(deletedMenus.fulfilled, (state, action) => {
+            .addCase(deletedMenu.fulfilled, (state, action) => {
                 state.isUpdated = false;
                 state.successMessage = action.payload.data?.message;
                 state.menus.filter((menu) => menu._id !== action.payload._id);
@@ -167,7 +168,7 @@ const menusSlice = createSlice({
                     state.selectedMenu = null
                 }
             })
-            .addCase(deletedMenus.rejected, (state, action) => {
+            .addCase(deletedMenu.rejected, (state, action) => {
                 state.isUpdated = false;
                 state.error = action.payload as string
             })

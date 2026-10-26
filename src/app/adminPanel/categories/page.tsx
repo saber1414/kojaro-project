@@ -1,6 +1,6 @@
 import Aside from '@/components/modules/AdminPanel/Aside/Aside';
 import Header from '@/components/modules/AdminPanel/Header/Header';
-import MenuList from '@/components/templates/AdminPanel/menus/MenuList';
+import MenuList from '@/components/templates/AdminPanel/menus/menuList';
 
 const Categories = () => {
     return (

@@ -98,10 +98,6 @@ const ArticleCategoriesList = () => {
         setSearch(e.target.value)
     };
 
-    const editCategoryHandel = async () => {
-        console.log('edit category')
-    };
-
     const deleteSelectedHandel = async () => {
         if (selectedIds.length === 0) return;
         try {
@@ -127,6 +123,16 @@ const ArticleCategoriesList = () => {
             return
         }
     };
+
+    const newCategoryCount = useMemo(() => {
+        if (!Array.isArray(articleCategories)) return 0;
+
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 / 1000;
+
+        return articleCategories.filter((category) => {
+            return new Date(category.createdAt!).getTime() >= sevenDaysAgo
+        }).length
+    }, [articleCategories]);
 
     return (
         <>
@@ -160,7 +166,7 @@ const ArticleCategoriesList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>دسته بندی ها</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {allCategories.length}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -183,7 +189,7 @@ const ArticleCategoriesList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>دسته بندی جدید</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newCategoryCount}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">

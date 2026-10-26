@@ -1,13 +1,216 @@
-import React, { useState } from 'react'
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { editMenu, fetchMenus } from '@/features/menus/menus';
+import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useDropzone } from "react-dropzone"
+import toast from 'react-hot-toast';
 
 type EditMenuProps = {
-    _id?: string;
-    confirm: () => void;
+    _id: string;
+    onSuccess: () => void;
     closeBtn: () => void;
 };
 
-const EditMenu = ({ confirm, closeBtn, _id }: EditMenuProps) => {
+type MenuNode = {
+    _id: string,
+    name: string,
+    slug: string,
+    icon?: string,
+    parentId?: string,
+    children?: MenuNode[],
+    createdAt: string
+};
+
+const findMenuById = (nodes: MenuNode[] | undefined, _id: string): MenuNode | null => {
+    if (!nodes?.length) return null;
+
+    for (const node of nodes) {
+        if (node._id === _id) return node;
+        const found = findMenuById(node.children, _id);
+        if (found) return found;
+    };
+
+    return null;
+};
+
+const flattenMenus = (nodes: MenuNode[] | undefined): MenuNode[] => {
+    if (!nodes?.length) return [];
+    const flatList: MenuNode[] = [];
+
+    for (const node of nodes) {
+        flatList.push(node);
+        if (node.children?.length) {
+            flatList.push(...flattenMenus(node.children))
+        }
+    };
+
+    return flatList
+};
+
+const getDescendantIds = (node: MenuNode): string[] => {
+    const ids: string[] = [node._id];
+    node.children?.forEach((child) => {
+        ids.push(...getDescendantIds(child))
+    });
+
+    return ids;
+};
+
+const EditMenu = ({ closeBtn, _id, onSuccess }: EditMenuProps) => {
+    const dispatch = useAppDispatch();
+    const { isUpdated, menus, isLoading } = useAppSelector(state => state.menus);
+
+    const [form, setForm] = useState({
+        name: "",
+        slug: "",
+        parent: ""
+    });
+    const [error, setError] = useState({
+        name: "",
+        slug: ""
+    });
     const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
+    const [iconPreview, setIconPreview] = useState<string | null>(null);
+    const [iconFile, setIconFile] = useState<File | null>(null);
+    const [selectedParent, setSelectedParent] = useState<{ _id: string, name: string } | null>(null);
+    const [search, setSearch] = useState<string>("");
+
+    const menuItem = useMemo(() => {
+        return menus.find((menu) => menu._id === _id)
+    }, [menus, _id]);
+
+    useEffect(() => {
+        if (menuItem) {
+            setForm({
+                name: menuItem.name,
+                slug: menuItem.slug,
+                parent: menuItem.parentId ?? "",
+            });
+            setIconPreview(menuItem.icon || null);
+            if (menuItem.parentId) {
+                const parentName = findMenuById(menus as MenuNode[], menuItem.parentId);
+                if (parentName) {
+                    setSelectedParent(parentName ? { _id: parentName._id, name: parentName.name } : null)
+                } else {
+                    setSelectedParent(null)
+                }
+            }
+        }
+    }, [menuItem, menus]);
+
+    const inputChangeHandel = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }))
+    };
+
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        const file = acceptedFiles[0];
+        if (!file) return null;
+
+        const allowedTypes = ["image/png", "image/jpg", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error("فرمت آیکون معتبر نیست");
+            return
+        };
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("حجم فایل بیش از حد مجاز می باشد");
+            return
+        };
+        setIconPreview((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(file)
+        });
+        setIconFile(file)
+    }, []);
+
+    const removeIcon = () => {
+        setIconPreview((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null
+        });
+        setIconFile(null)
+    };
+
+    const { getRootProps, getInputProps } = useDropzone({
+        onDrop,
+        accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"] },
+        multiple: false,
+        maxFiles: 1
+    });
+
+    const flattenMenus = (nodes: MenuNode[] | undefined): MenuNode[] => {
+        if (!nodes?.length) return [];
+        const flat: MenuNode[] = [];
+
+        for (const node of nodes) {
+            flat.push(node);
+            if (node.children?.length) {
+                flat.push(...flattenMenus(node.children));
+            }
+        }
+        return flat;
+    };
+
+    const availableParents = useMemo(() => {
+        const all = flattenMenus(menus as MenuNode[]);
+        const current = findMenuById(menus as MenuNode[], _id);
+        const exclude = new Set(current ? getDescendantIds(current) : [_id]);
+
+        return all.filter((menu) => !exclude.has(menu._id))
+    }, [menus, _id]);
+
+    const filteredParents = useMemo(() => {
+        const q = search.toLowerCase();
+
+        if (!q) return availableParents;
+
+        return availableParents.filter((menu) =>
+            menu.name.toLowerCase().includes(q) ||
+            menu.slug.toLowerCase().includes(q)
+        );
+    }, [availableParents, search]);
+
+    const handleSelectParent = (menu: { _id: string, name: string }) => {
+        if (selectedParent?._id === menu._id) {
+            setSelectedParent(null);
+            setForm((prev) => ({ ...prev, parent: "" }));
+        } else {
+            setSelectedParent(menu);
+            setForm((prev) => ({ ...prev, parent: menu._id }));
+        };
+        setIsOpenMenu(false);
+        setSearch("")
+    };
+
+    const submitFormHandel = async (e: FormEvent) => {
+        e.preventDefault();
+        const errorMessage = {
+            name: form.name ? "" : "نام منو الزامی می باشد",
+            slug: form.slug ? "" : "مسیر منو الزامی می باشد",
+        };
+        setError(errorMessage);
+        const hasError = Object.values(errorMessage).some((message) => message !== "");
+        if (hasError) {
+            toast.error("فیلدها را پر کنید")
+            return;
+        };
+        try {
+            const formData = new FormData();
+
+            formData.append("name", form.name);
+            formData.append("slug", form.slug);
+            if (selectedParent) formData.append("parentId", selectedParent._id);
+            if (iconFile) formData.append("icon", iconFile);
+            await dispatch(editMenu({ _id, formData })).unwrap();
+            dispatch(fetchMenus());
+            toast.success("منو باموفقیت ویرایش شد")
+            setSelectedParent(null);
+            removeIcon();
+            onSuccess();
+        } catch (err: any) {
+            toast.error(err);
+            return
+        };
+    };
 
     return (
         <>
@@ -26,18 +229,35 @@ const EditMenu = ({ confirm, closeBtn, _id }: EditMenuProps) => {
                         </button>
                     </div>
                     <span className='w-full h-px block bg-gray-200 mt-4 mb-4'></span>
-                    <form className='flex justify-between flex-wrap gap-y-4'>
+                    <form
+                        onSubmit={submitFormHandel}
+                        className='flex justify-between flex-wrap gap-y-4'>
                         <div className="w-[48%] flex flex-col">
                             <label className='text-[14px] mb-4'>نام منو</label>
-                            <input type="text" className='bg-white pr-4 h-10 border border-gray-200 text-[14px] placeholder:text-[13px] text-gray-icon rounded-sm' placeholder='نام منو' />
+                            <input
+                                type="text"
+                                name='name'
+                                value={form.name}
+                                onChange={inputChangeHandel}
+                                className='bg-white pr-4 h-10 border border-gray-200 text-[14px] placeholder:text-[13px] text-gray-icon rounded-sm'
+                                placeholder='نام منو' />
+                            {error && <small className='mt-2 mr-1 text-red-400'>{error.name}</small>}
                         </div>
                         <div className="w-[48%] flex flex-col">
                             <label className='text-[14px] mb-4'>میسر منو (url)</label>
-                            <input type="text" dir='ltr' className='bg-white pl-4 h-10 border border-gray-200 text-[14px] placeholder:text-[13px] text-gray-icon rounded-sm' placeholder='url' />
+                            <input
+                                type="text"
+                                name='slug'
+                                value={form.slug}
+                                onChange={inputChangeHandel}
+                                dir='ltr'
+                                className='bg-white pl-4 h-10 border border-gray-200 text-[14px] placeholder:text-[13px] text-gray-icon rounded-sm'
+                                placeholder='url' />
+                            {error && <small className='mt-2 mr-1 text-red-400'>{error.slug}</small>}
                         </div>
                         <div className="w-[48%] flex flex-col">
                             <label className='text-[14px] mb-4'>آیکون منو</label>
-                            <label htmlFor="cover-article" className='bg-white flex items-center justify-center p-4 rounded-sm h-12 cursor-pointer border-gray-icon border-dashed border'>
+                            <label {...getRootProps()} htmlFor="cover-article" className='bg-white flex items-center justify-center p-4 rounded-sm h-12 cursor-pointer border-gray-icon border-dashed border'>
                                 <span className='text-[13px] text-gray-icon flex gap-x-2'>
                                     آیکون را انتخاب کنید
                                     <svg
@@ -53,26 +273,33 @@ const EditMenu = ({ confirm, closeBtn, _id }: EditMenuProps) => {
                                     </svg>
                                 </span>
                             </label>
-                            <input type="file" id='cover-article' className='hidden' />
+                            <input {...getInputProps()} />
                             <div className="mt-5 mb-4 flex flex-col gap-y-2">
                                 <span className='text-[13px]'>فرمت های مجاز: <small className='text-[13px] text-gray-icon'>png jpge jpg webp svg</small></span>
                                 <span className='text-[13px]'>حجم مجاز: <small className='text-[13px] text-gray-icon'>حجم کاور نباید بیشتر از 5 مگابایت باشد.</small></span>
                             </div>
-                            <div className="mt-5 w-full relative hidden">
-                                <img src="/images/image01.jpg" alt="article image" className='h-30 w-full object-cover' />
-                                <button type="button" className='cursor-pointer absolute top-3.5 left-1.5 bg-white2 w-10 flex items-center justify-center rounded-sm h-6'>
-                                    <svg
-                                        xmlns='http://www.w3.org/2000/svg'
-                                        width='16'
-                                        height='16'
-                                        fill='currentColor'
-                                        className='bi bi-trash-fill fill-red-500'
-                                        viewBox='0 0 16 16'
-                                    >
-                                        <path d='M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0'></path>
-                                    </svg>
-                                </button>
-                            </div>
+                            {
+                                iconPreview && (
+                                    <div className="mt-5 w-20 relative">
+                                        <img src={iconPreview!} alt="article image" className='h-20 w-full object-cover' />
+                                        <button
+                                            type="button"
+                                            onClick={removeIcon}
+                                            className='cursor-pointer absolute top-3.5 left-1.5 bg-white2 w-10 flex items-center justify-center rounded-sm h-6'>
+                                            <svg
+                                                xmlns='http://www.w3.org/2000/svg'
+                                                width='16'
+                                                height='16'
+                                                fill='currentColor'
+                                                className='bi bi-trash-fill fill-red-500'
+                                                viewBox='0 0 16 16'
+                                            >
+                                                <path d='M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0'></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )
+                            }
                         </div>
                         <div className="w-[48%] flex flex-col">
                             <label className='text-[14px] mb-4'>دسته بندی منو</label>
@@ -82,7 +309,9 @@ const EditMenu = ({ confirm, closeBtn, _id }: EditMenuProps) => {
                                 onClick={() => setIsOpenMenu(!isOpenMenu)}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-start block truncate text-[13px]">یک دسته بندی را انتخاب کنید</span>
+                                    <span className={`text-start block truncate text-[13px] ${selectedParent ? "text-dark" : "text-gray-400"}`}>
+                                        {selectedParent ? selectedParent.name : "یک دسته بندی را انتخاب کنید"}
+                                    </span>
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
@@ -98,6 +327,8 @@ const EditMenu = ({ confirm, closeBtn, _id }: EditMenuProps) => {
                                     <div className="flex items-center justify-between border border-gray-200 rounded-sm px-4 bg-gray-100">
                                         <input
                                             type="text"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
                                             onClick={(e) => e.stopPropagation()}
                                             className='h-10 placeholder:text-[13px] bg-transparent outline-none text-[14px]' placeholder='جستوجوی دسته بندی' />
                                         <div>
@@ -117,15 +348,64 @@ const EditMenu = ({ confirm, closeBtn, _id }: EditMenuProps) => {
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="mt-2 border border-gray-200 p-1 text-[14px] max-h-48 overflow-y-auto">
-                                        <p className="hover:bg-gray-200 h-8 transition-all ease-in pr-2 flex items-center rounded-sm cursor-pointer text-[13px]">نام دسته بندی</p>
+                                    <div className="max-h-48 overflow-y-auto">
+                                        {filteredParents.length ? (
+                                            filteredParents.map((subMenu) => {
+                                                const isSelected = selectedParent?._id === subMenu._id;
+                                                return (
+                                                    <div
+                                                        key={subMenu._id}
+                                                        onClick={() => handleSelectParent(subMenu)}
+                                                        className={`
+                                                            mt-2 border p-1 text-[14px] flex items-center justify-between rounded-sm cursor-pointer transition-all duration-200
+                                                            ${isSelected
+                                                                ? 'border-green-400 bg-green-50'
+                                                                : 'border-gray-200 hover:bg-gray-50'
+                                                            }
+                                                        `}
+                                                    >
+                                                        <p className={`h-8 flex items-center pr-2 rounded-sm text-[13px] ${isSelected ? 'text-green-600' : 'text-gray-700'}`}>
+                                                            {subMenu.name}
+                                                        </p>
+                                                        {isSelected && (
+                                                            <svg
+                                                                xmlns='http://www.w3.org/2000/svg'
+                                                                width='16'
+                                                                height='16'
+                                                                fill='currentColor'
+                                                                className='bi bi-check-lg fill-green-500'
+                                                                viewBox='0 0 16 16'
+                                                            >
+                                                                <path d='M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z'></path>
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })
+                                        ) : isLoading ? (
+                                            <div className="border border-gray-100 h-30 mt-2 rounded-sm flex flex-col gap-y-4 items-center justify-center">
+                                                <p className='text-gray-icon text-[14px]'>درحال بارگذاری...</p>
+                                            </div>
+                                        ) : (
+                                            <div className="border border-gray-100 h-30 mt-2 rounded-sm flex flex-col gap-y-4 items-center justify-center">
+                                                <img className="w-15" alt="" src="/images/emptyImage01.png" />
+                                                <p className="text-gray-icon text-[14px]">دسته مورد نظر یافت نشد</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </button>
                         </div>
                         <div className="w-[48%] flex flex-col"></div>
                         <div className="flex justify-end w-full">
-                            <button type="button" onClick={confirm} className='w-35 h-10 cursor-pointer rounded-sm text-white text-[14px] mt-10 bg-fuchsia-500'>ویرایش</button>
+                            <button
+                                type="submit"
+                                disabled={isUpdated}
+                                className='w-35 h-10 flex items-center justify-center cursor-pointer rounded-sm text-white text-[14px] mt-10 bg-fuchsia-500 disabled:opacity-50 disabled:cursor-no-drop'>
+                                {
+                                    isUpdated ? <div className="dots"></div> : "ویرایش"
+                                }
+                            </button>
                         </div>
                     </form>
                 </div>

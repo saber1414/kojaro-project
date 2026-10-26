@@ -1,32 +1,29 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import EmptyPage from '../../../modules/AdminPanel/EmptyPage/EmptyPage';
-import EditSubMenu from './EditSubMenu';
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
-
-export interface Menu {
-    _id: string;
-    name: string;
-    slug: string;
-    parentId: string | null;
-    children: Menu[];
-    icon: string | null;
-    createdAt: string;
-    updatedAt: string;
-}
+import { Menu } from '@/types/menu';
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import EditSubMenu from './editSubMenu';
+import toast from 'react-hot-toast';
+import { deletedMenu, fetchMenus } from '@/features/menus/menus';
 
 type DetailsMenuProps = {
     menus: Menu[];
     _id: string;
-    confirm?: () => void;
     closeBtn: () => void;
+    onSuccess: () => void;
 };
 
-const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
+const DetailsMenu = ({ closeBtn, menus, _id, onSuccess }: DetailsMenuProps) => {
+    const dispatch = useAppDispatch();
+    const { isLoading, isUpdated } = useAppSelector(state => state.menus);
+
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [editSubMenuModal, setEditSubMenuModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [subMenuId, setSubMenuId] = useState<string | null>(null);
 
     const parentMenu = useMemo(() =>
         menus.find((menu) => menu._id === _id),
@@ -44,8 +41,8 @@ const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
 
     const paginatedSubMenus = useMemo(() => {
         const start = (currentPage - 1) * limit;
-        return subMenus.slice(start, start + limit)
-    }, [subMenus]);
+        return subMenus.slice(start, start + limit);
+    }, [subMenus, currentPage, limit]);
 
     const limitOptions = useMemo(() => {
         const totalCount = subMenus.length;
@@ -88,13 +85,19 @@ const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
         setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
     };
 
-    const editSubMenuHandel = async () => {
-        console.log('Edit sub menu')
+    const deleteSubMenuHandel = async () => {
+        try {
+            await dispatch(deletedMenu(subMenuId!)).unwrap();
+            dispatch(fetchMenus());
+            setSubMenuId(null);
+            toast.success("زیرمنو باموفقیت حذف شد");
+            setDeleteModal(false);
+            onSuccess()
+        } catch (err: any) {
+            toast.error(err);
+            return;
+        }
     };
-
-    const deleteSubMenuHandel = async() => {
-        console.log('delete sub menu')
-    }
 
     return (
         <>
@@ -103,7 +106,7 @@ const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
                     <div className="flex items-center justify-between p-4">
                         <div className="flex items-center">
                             <span className='block w-1 h-5 absolute right-0 bg-green-500'></span>
-                            <span className='text-[14px]'>جزئیات منو</span>
+                            <span className='text-[14px]'>جزئیات زیر منو</span>
                         </div>
                         <button
                             type="button"
@@ -131,7 +134,7 @@ const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
                     {
                         paginatedSubMenus.length ? (
                             <>
-                                <div className="mt-5 grid grid-cols-[1fr_1fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2 mx-4">
+                                <div className="mt-5 grid grid-cols-[1fr_1fr_3fr_3fr_3fr] text-[14px] text-center bg-gray-100 rounded-lg py-4 mb-2 mx-4">
                                     <div className="flex items-center justify-center">
                                         <input
                                             type="checkbox"
@@ -144,76 +147,88 @@ const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
                                     </div>
                                     <div>ردیف</div>
                                     <div>زیر دسته ها</div>
+                                    <div>آیکون</div>
                                     <div>وضعیت</div>
                                 </div>
-                                {
-                                    paginatedSubMenus.map((subMenu, index) => (
-                                        <div key={subMenu._id} className="grid grid-cols-[1fr_1fr_3fr_3fr] text-center items-center bg-gray-50 rounded-lg py-4 mb-2 mx-4">
-                                            <div className="flex items-center justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedIds.includes(subMenu._id)}
-                                                    onChange={() => toggleSelectedOne(subMenu._id)}
-                                                    className='w-4 h-4 rounded border-gray-300 accent-green-1 cursor-pointer' />
+                                <div className="h-88 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-500">
+                                    {
+                                        paginatedSubMenus.map((subMenu, index) => (
+                                            <div key={subMenu._id} className="grid grid-cols-[1fr_1fr_3fr_3fr_3fr] text-center items-center bg-gray-50 rounded-lg py-4 mb-2 mx-4">
+                                                <div className="flex items-center justify-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedIds.includes(subMenu._id)}
+                                                        onChange={() => toggleSelectedOne(subMenu._id)}
+                                                        className='w-4 h-4 rounded border-gray-300 accent-green-1 cursor-pointer' />
+                                                </div>
+                                                <div>{index + 1}</div>
+                                                <div>{subMenu.name}</div>
+                                                <div className="flex items-center justify-center">
+                                                    <img className='w-8' src={`${subMenu.icon ? subMenu.icon : "/images/emptyImage.png"}`} alt={`${subMenu.name}`} />
+                                                </div>
+                                                <div className='flex items-center justify-center gap-x-2'>
+                                                    {
+                                                        subMenu.children.length > 0 && (
+                                                            <button
+                                                                type="button"
+                                                                className='cursor-pointer bg-green-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-green-200 transition-colors'>
+                                                                <svg
+                                                                    width='16'
+                                                                    height='16'
+                                                                    fill='currentColor'
+                                                                    className='bi bi-eye-fill fill-green-500'
+                                                                    viewBox='0 0 16 16'
+                                                                >
+                                                                    <path d='M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0'></path>
+                                                                    <path d='M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7'></path>
+                                                                </svg>
+                                                            </button>
+                                                        )
+                                                    }
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditSubMenuModal(true);
+                                                            setSubMenuId(subMenu._id);
+                                                        }}
+                                                        className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
+                                                        <svg
+                                                            width='16'
+                                                            height='16'
+                                                            fill='none'
+                                                            viewBox='0 0 13 13'
+                                                        >
+                                                            <path
+                                                                fill='#1e88e5'
+                                                                stroke='#1e88e5'
+                                                                strokeLinecap='round'
+                                                                strokeLinejoin='round'
+                                                                d='M11.065 1.03a1.82 1.82 0 0 0-2.585.018L1.618 7.91a2 2 0 0 0-.524.918l-.58 2.267a.4.4 0 0 0 .486.487L3.268 11a2 2 0 0 0 .917-.523l6.863-6.862a1.817 1.817 0 0 0 .017-2.585'
+                                                            ></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setDeleteModal(true);
+                                                            setSubMenuId(subMenu._id)
+                                                        }}
+                                                        className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
+                                                        <svg
+                                                            width='16'
+                                                            height='16'
+                                                            fill='currentColor'
+                                                            className='bi bi-trash-fill fill-red-500'
+                                                            viewBox='0 0 16 16'
+                                                        >
+                                                            <path d='M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0'></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div>{index + 1}</div>
-                                            <div>{subMenu.name}</div>
-                                            <div className='flex items-center justify-center gap-x-2'>
-                                                {
-                                                    subMenu.children.length > 0 && (
-                                                        <button
-                                                            type="button"
-                                                            className='cursor-pointer bg-green-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-green-200 transition-colors'>
-                                                            <svg
-                                                                width='16'
-                                                                height='16'
-                                                                fill='currentColor'
-                                                                className='bi bi-eye-fill fill-green-500'
-                                                                viewBox='0 0 16 16'
-                                                            >
-                                                                <path d='M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0'></path>
-                                                                <path d='M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7'></path>
-                                                            </svg>
-                                                        </button>
-                                                    )
-                                                }
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setEditSubMenuModal(true)}
-                                                    className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
-                                                    <svg
-                                                        width='16'
-                                                        height='16'
-                                                        fill='none'
-                                                        viewBox='0 0 13 13'
-                                                    >
-                                                        <path
-                                                            fill='#1e88e5'
-                                                            stroke='#1e88e5'
-                                                            strokeLinecap='round'
-                                                            strokeLinejoin='round'
-                                                            d='M11.065 1.03a1.82 1.82 0 0 0-2.585.018L1.618 7.91a2 2 0 0 0-.524.918l-.58 2.267a.4.4 0 0 0 .486.487L3.268 11a2 2 0 0 0 .917-.523l6.863-6.862a1.817 1.817 0 0 0 .017-2.585'
-                                                        ></path>
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDeleteModal(true)}
-                                                    className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
-                                                    <svg
-                                                        width='16'
-                                                        height='16'
-                                                        fill='currentColor'
-                                                        className='bi bi-trash-fill fill-red-500'
-                                                        viewBox='0 0 16 16'
-                                                    >
-                                                        <path d='M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0'></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                }
+                                        ))
+                                    }
+                                </div>
                             </>
                         ) : (
                             <EmptyPage name='زیر دسته' text='زیر دسته ها' />
@@ -284,17 +299,22 @@ const DetailsMenu = ({ confirm, closeBtn, menus, _id }: DetailsMenuProps) => {
             {
                 editSubMenuModal && (
                     <EditSubMenu
-                        confirm={editSubMenuHandel}
+                        _id={subMenuId!}
+                        onSuccess={() => {
+                            setEditSubMenuModal(false);
+                            setSubMenuId(null)
+                        }}
                         closeBtn={() => setEditSubMenuModal(false)}
                     />
                 )
             }
             {
                 deleteModal && (
-                    <DeleteModal 
+                    <DeleteModal
                         confirmBtn={deleteSubMenuHandel}
                         closeBtn={() => setDeleteModal(false)}
                         text='زیر منو'
+                        loading={isUpdated}
                     />
                 )
             }
