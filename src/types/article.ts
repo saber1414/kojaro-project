@@ -20,7 +20,11 @@ export interface Article {
     };
     tags?: string[];
     status?: "draft" | "published" | "archived";
-    isFeatured?: boolean;
+    articleCategory?: {
+        _id: string;
+        name: string;
+        slug: string
+    };
     views?: number;
     readingTime?: number;
     metaTitle?: string | null;

@@ -74,6 +74,18 @@
     grid-area: main;
   }
 
+  .content p {
+    font-size: 14px;
+    font-family: var(--font-IRANYekan-Light);
+    line-height: 2;
+  }
+
+  .content img {
+    width: 100%;
+    margin-block: 1rem;
+    border-radius: 5px;
+  }
+
   @keyframes dots-u8fzftsm {
     0% {
       box-shadow: 16px 0, -16px 0;

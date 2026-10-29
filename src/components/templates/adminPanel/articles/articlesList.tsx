@@ -8,12 +8,15 @@ import { useAppDispatch, useAppSelector } from '@/features/hooks';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast';
+import DetailsArticle from './detailsArticle';
+import EditArticle from './editArticle';
 
 const ArticlesList = () => {
     const dispatch = useAppDispatch();
     const { articles, isLoading } = useAppSelector(state => state.articles);
 
     const [search, setSearch] = useState<string>("");
+    const [showContent, setShowContent] = useState<boolean>(false);
 
     useEffect(() => {
         dispatch(fetchArticles({ page, limit })).unwrap()
@@ -39,21 +42,20 @@ const ArticlesList = () => {
     }, [articles, search]);
 
     const newArticlesCount = useMemo(() => {
-        const now = new Date();
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 / 1000);
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
         return articles.filter((article) => {
-            const createdAt = new Date(article.createdAt!);
-
-            return createdAt >= sevenDaysAgo
+             return new Date(article.createdAt!).getTime() >= sevenDaysAgo;
         }).length
-    }, []);
+    }, [articles]);
 
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [articleId, setArticleId] = useState<string | null>(null);
+    const [articleContent, setArticleContent] = useState<string>("");
+    const [editModal, setEditModal] = useState<boolean>(false);
 
     const total = allArticles.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -310,7 +312,7 @@ const ArticlesList = () => {
                                             }
                                         </div>
                                         <div>{article.author?.fullname}</div>
-                                        <div>{article.category?.name}</div>
+                                        <div>{article.articleCategory?.name}</div>
                                         <div className={`
                                                 h-8 text-[13px] flex items-center justify-center
                                                 ${article.status === "draft" && "bg-amber-100" ||
@@ -327,6 +329,11 @@ const ArticlesList = () => {
                                         <div className='flex items-center justify-center gap-x-2'>
                                             <button
                                                 type="button"
+                                                onClick={() => {
+                                                    setShowContent(true);
+                                                    setArticleId(article._id!);
+                                                    setArticleContent(article.content!)
+                                                }}
                                                 className='cursor-pointer bg-green-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-green-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -341,6 +348,10 @@ const ArticlesList = () => {
                                             </button>
                                             <button
                                                 type="button"
+                                                onClick={() => {
+                                                    setArticleId(article._id!)
+                                                    setEditModal(true)
+                                                }}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -453,6 +464,26 @@ const ArticlesList = () => {
                         closeBtn={operationCancelled}
                         text='مقاله'
                         loading={isLoading}
+                    />
+                )
+            }
+            {
+                showContent && (
+                    <DetailsArticle
+                        close={() => setShowContent(false)}
+                        content={articleContent}
+                    />
+                )
+            }
+            {
+                editModal && (
+                    <EditArticle
+                        _id={articleId!}
+                        onClose={() => setEditModal(false)}
+                        onSuccess={() => {
+                            setEditModal(false)
+                            setArticleId(null);
+                        }}
                     />
                 )
             }

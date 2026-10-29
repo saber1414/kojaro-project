@@ -5,12 +5,13 @@ import "suneditor/dist/css/suneditor.min.css";
 
 type RichTextEditorProps = {
     value: string;
+    name: string;
     onChange: (content: string) => void;
     height?: string;
     placeholder?: string;
 };
 
-export const RichTextEdito = ({ value, onChange, height = "50rem", placeholder = "متن مقاله" }: RichTextEditorProps) => {
+export const RichTextEdito = ({ value, name, onChange, height = "50rem", placeholder = "متن مقاله" }: RichTextEditorProps) => {
     const handleImageUpload = useCallback((
         files: File[],
         _info: unknown,
@@ -50,6 +51,7 @@ export const RichTextEdito = ({ value, onChange, height = "50rem", placeholder =
         <div dir="rtl">
             <SunEditor
                 setContents={value}
+                name={name}
                 onChange={onChange}
                 height={height}
                 placeholder={placeholder}

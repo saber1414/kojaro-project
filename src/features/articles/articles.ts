@@ -32,7 +32,7 @@ export const fetchArticles = createAsyncThunk("articles/fetchArticles", async (
         if (params.category) query.append("category", params.category);
         if (params.author) query.append("author", params.author);
 
-        const response = await axios.get(`/api/articles?=${query.toString()}`);
+        const response = await axios.get(`/api/articles?${query.toString()}`);
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;

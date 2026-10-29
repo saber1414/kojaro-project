@@ -8,14 +8,13 @@ export interface IArticle extends Document {
     coverImage?: string | null;
     coverImagePublicId?: string | null;
     author: Types.ObjectId;
-    category: Types.ObjectId;
+    categories: Types.ObjectId[];
     articleCategory: Types.ObjectId;
     likeCount: number;
     dislikeCount: number;
     comments: Types.ObjectId[];
     tags?: string[];
     status: "draft" | "published" | "archived";
-    isFeatured: boolean;
     views: number;
     readingTime?: number;
     metaTitle?: string;
@@ -63,10 +62,13 @@ const schema: Schema<IArticle> = new Schema({
         ref: "User",
         required: true,
     },
-    category: {
-        type: Schema.Types.ObjectId,
-        ref: "Category",
-        required: true,
+    categories: {
+        type: [{ type: Schema.Types.ObjectId, ref: "Category" }],
+        default: [],
+        validate: {
+            validator: (v: unknown[]) => Array.isArray(v) && v.length > 0,
+            message: "حداقل یک منو الزامی است",
+        },
     },
     articleCategory: {
         type: Schema.Types.ObjectId,
@@ -94,10 +96,6 @@ const schema: Schema<IArticle> = new Schema({
         enum: ["draft", "published", "archived"],
         default: "draft",
     },
-    isFeatured: {
-        type: Boolean,
-        default: false,
-    },
     views: {
         type: Number,
         default: 0,
@@ -124,12 +122,10 @@ const schema: Schema<IArticle> = new Schema({
     },
 }, { timestamps: true });
 
-schema.index({ slug: 1 });
-schema.index({ status: 1, published: 1 });
-schema.index({ category: 1 });
-schema.index({ comments: 1 });
+schema.index({ status: 1, publishedAt: -1 });
+schema.index({ categories: 1 });
+schema.index({ articleCategory: 1 });
 schema.index({ author: 1 });
-schema.index({ isFeatured: 1 });
 schema.index({ tags: 1 });
 schema.index({ title: "text", excerpt: "text", content: "text" });
 

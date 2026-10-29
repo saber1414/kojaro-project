@@ -188,7 +188,7 @@ const Aside = () => {
                                             </button>
                                         </div>
                                     ) : (
-                                        <li className={`${pathname === item.href && "bg-white"} h-10 rounded-lg flex pr-4 mb-4`}>
+                                        <li className={`${pathname === item.href && "bg-white shadow shadow-gray-200"}  h-10 rounded-lg flex pr-4 mb-4`}>
                                             <Link href={item?.href || "#"} className='flex items-center justify-between'>
                                                 <div className="flex items-center gap-x-4">
                                                     {item.icon}

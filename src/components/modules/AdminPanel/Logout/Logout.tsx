@@ -38,7 +38,7 @@ const LogoutMe = () => {
     return (
         <>
             <div className="mt-auto">
-                <button onClick={() => setLogoutBtn(true)} type="button" className='cursor-pointer text-[14px] bg-white rounded-lg w-full h-10'>
+                <button onClick={() => setLogoutBtn(true)} type="button" className='cursor-pointer text-[14px] shadow shadow-gray-200 bg-white rounded-lg w-full h-10'>
                     <span>خروج از حساب</span>
                 </button>
             </div>
