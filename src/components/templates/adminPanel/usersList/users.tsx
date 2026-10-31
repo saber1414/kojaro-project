@@ -9,6 +9,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import Register from "./register";
 import ChangeRole from "./changeRole";
+import { useReactionItems } from "@/hooks/useRecentCount";
 
 type Role = "author" | "user" | "moderator";
 
@@ -21,19 +22,6 @@ const UserList = () => {
     useEffect(() => {
         dispatch(fetchUsers({ page, limit }))
     }, []);
-
-    const newUsersCount = useMemo(() => {
-        if (!Array.isArray(users)) return 0;
-
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-
-        return users.filter((user) => {
-            if (user.role !== "user") return false;
-            if (!user.createdAt) return false;
-
-            return new Date(user.createdAt).getTime() >= sevenDaysAgo;
-        }).length;
-    }, [users]);
 
     const allUsers = useMemo(() => {
         const onlyUsers = users.filter((user) => user.role === "user");
@@ -58,6 +46,7 @@ const UserList = () => {
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [currentUserRole, setCurrentUserRole] = useState<Role>("user");
+    const newUsersCount = useReactionItems(users.filter((user) => user.role === "user"), 7)
 
     const [showFormRegister, setShowFormRegister] = useState<boolean>(false);
     const [showChangeRole, setShowChangeRole] = useState<boolean>(false);

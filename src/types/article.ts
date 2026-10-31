@@ -33,6 +33,6 @@ export interface Article {
     dislikeCount: number;
     likeCount: number;
     userReaction: string;
-    createdAt?: string;
+    createdAt: string;
     updatedAt?: string;
 };

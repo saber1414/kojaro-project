@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast';
 import DetailsArticle from './detailsArticle';
 import EditArticle from './editArticle';
+import { useReactionItems } from '@/hooks/useRecentCount';
 
 const ArticlesList = () => {
     const dispatch = useAppDispatch();
@@ -41,14 +42,6 @@ const ArticlesList = () => {
         });
     }, [articles, search]);
 
-    const newArticlesCount = useMemo(() => {
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-
-        return articles.filter((article) => {
-             return new Date(article.createdAt!).getTime() >= sevenDaysAgo;
-        }).length
-    }, [articles]);
-
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -56,6 +49,7 @@ const ArticlesList = () => {
     const [articleId, setArticleId] = useState<string | null>(null);
     const [articleContent, setArticleContent] = useState<string>("");
     const [editModal, setEditModal] = useState<boolean>(false);
+    const newArticlesCount = useReactionItems(articles,7)
 
     const total = allArticles.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));

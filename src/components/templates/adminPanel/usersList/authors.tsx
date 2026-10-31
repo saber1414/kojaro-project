@@ -9,6 +9,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast';
 import Register from './register';
 import ChangeRole from './changeRole';
+import { useReactionItems } from '@/hooks/useRecentCount';
 
 type Role = "author" | "user" | "moderator";
 
@@ -21,19 +22,6 @@ const AuthorList = () => {
     useEffect(() => {
         dispatch(fetchUsers({ page, limit })).unwrap()
     }, []);
-
-    const newAuthorsCount = useMemo(() => {
-        if (!Array.isArray(users)) return 0;
-
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-
-        return users.filter((user) => {
-            if (user.role !== "author") return false;
-            if (!user.createdAt) return false;
-
-            return new Date(user.createdAt).getTime() >= sevenDaysAgo;
-        }).length;
-    }, [users]);
 
     const authors = useMemo(() => {
         const onlyAuthors = users.filter((user) => user.role === "author");
@@ -63,6 +51,7 @@ const AuthorList = () => {
     const [showChangeRole, setShowChangeRole] = useState<boolean>(false);
     const [userId, setUserId] = useState<string | null>(null);
     const [currentUserRole, setCurrentUserRole] = useState<Role>("user");
+    const newAuthorsCount = useReactionItems(users.filter((user) => user.role === "author"), 7)
 
     const total = authors.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));

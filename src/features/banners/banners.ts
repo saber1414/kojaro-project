@@ -69,6 +69,19 @@ export const deletedBanner = createAsyncThunk("banners/deletedBanner", async (_i
     }
 });
 
+export const deletedBanners = createAsyncThunk("banners/deletedBanners", async (ids: string[], { rejectWithValue }) => {
+    try {
+        const response = await axios.delete("/api/banners", {
+            data: {ids},
+            withCredentials: true
+        });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>;
+        return rejectWithValue(axiosError);
+    }
+});
+
 const bannerSlice = createSlice({
     name: "banners",
     initialState,
@@ -148,6 +161,22 @@ const bannerSlice = createSlice({
             .addCase(deletedBanner.rejected, (state, action) => {
                 state.isLoading = false;
                 state.errors = action.payload as string
+            })
+            .addCase(deletedBanners.pending, (state) => {
+                state.isLoading = true;
+                state.errors = null;
+            })
+            .addCase(deletedBanners.fulfilled,(state,action) => {
+                state.isLoading = false;
+                state.successMessage = action.payload.message;
+                state.banners = state.banners.filter((banner) => banner._id !== action.payload._id);
+                if(state.selectedBanner?._id === action.payload._id) {
+                    state.selectedBanner = null
+                }
+            })
+            .addCase(deletedBanners.rejected,(state,action: PayloadAction<any>) => {
+                state.isLoading = false;
+                state.errors = action.payload
             })
     },
 });

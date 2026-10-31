@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/features/hooks';
 import { deletedArticleCategories, deletedArticlesCategory, fetchCategories } from '@/features/articleCategories/articleCategories';
 import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
 import toast from 'react-hot-toast';
+import { useReactionItems } from '@/hooks/useRecentCount';
 
 const ArticleCategoriesList = () => {
     const dispatch = useAppDispatch();
@@ -26,6 +27,7 @@ const ArticleCategoriesList = () => {
     const [editModal, setEditModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [categoryId, setCategoryId] = useState<string | null>(null);
+    const newCategoryCount = useReactionItems(articleCategories, 7);
 
     const allCategories = useMemo(() => {
         const onlyCategories = articleCategories;
@@ -123,16 +125,6 @@ const ArticleCategoriesList = () => {
             return
         }
     };
-
-    const newCategoryCount = useMemo(() => {
-        if (!Array.isArray(articleCategories)) return 0;
-
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 / 1000;
-
-        return articleCategories.filter((category) => {
-            return new Date(category.createdAt!).getTime() >= sevenDaysAgo
-        }).length
-    }, [articleCategories]);
 
     return (
         <>

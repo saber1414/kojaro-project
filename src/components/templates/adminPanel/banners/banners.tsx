@@ -1,31 +1,20 @@
 "use client"
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CreateBanner from './createBanner';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import EditBanner from './editBanner';
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
-
-const banners = [
-    {
-        _id: "6a9c15035f4c0e14620b82ae",
-        title: "افسردگی بعد از سفر چیست؟ دلایل، علائم و راه‌های مقابله",
-        link: "best-fuman-restaurants",
-        imag: "/uploads/banner__b5f0db41-6cff-463e-8b1b-e668c1a7aff7.jpg",
-        createdA: "2026-09-05T13:11:31.542Z",
-        updatedA: "2026-09-05T13:11:31.542Z"
-    },
-    {
-        _id: "6a9c15035f4c0e14620b82a1",
-        title: "جاهای دیدنی گیلان در پاییز؛ از جنگل‌های مه‌آلود تا دریاچه‌های رنگارنگ",
-        link: "best-fuman-restaurants",
-        imag: "/images/banner01.jpg",
-        createdA: "2026-09-05T13:11:31.542Z",
-        updatedA: "2026-09-05T13:11:31.542Z"
-    },
-]
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { deletedBanner, deletedBanners, fetchBanners } from '@/features/banners/banners';
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
+import toast from 'react-hot-toast';
+import { useReactionItems } from '@/hooks/useRecentCount';
 
 const BannersList = () => {
+    const dispath = useAppDispatch();
+    const { isLoading, banners } = useAppSelector(state => state.banners);
+
     const [search, setSearch] = useState<string>("");
     const [createBannerModal, setCreateBannerModal] = useState<boolean>(false);
     const [editBannerModal, setEditBannerModal] = useState<boolean>(false);
@@ -33,13 +22,15 @@ const BannersList = () => {
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [bannerId, setBannerId] = useState<string | null>(null);
+    const newBannersCount = useReactionItems(banners, 7);
+
+    useEffect(() => {
+        dispath(fetchBanners()).unwrap();
+    }, []);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value)
-    };
-
-    const handelCreateBanner = async () => {
-        console.log('create baner')
     };
 
     const allBanners = useMemo(() => {
@@ -110,13 +101,30 @@ const BannersList = () => {
         setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
     };
 
-    const handleEditBanner = async() => {
-        console.log('edit banner')
+    const handleDeleteBanners = async () => {
+        if (selectedIds.length === 0) return null
+        try {
+            await dispath(deletedBanners(selectedIds)).unwrap();
+            dispath(fetchBanners());
+            setSelectedIds([]);
+            toast.success("بنر باموفقیت حذف شد");
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
     };
 
-    const handleDeleteBanner = async() => {
-        console.log('delete banner')
-    }
+    const handleDeleteBanner = async () => {
+        try {
+            await dispath(deletedBanner(bannerId!)).unwrap();
+            dispath(fetchBanners());
+            setDeleteBannerModal(false);
+            toast.success("بنر باموفقیت حذف شد");
+        } catch (err: any) {
+            toast.error(err);
+            return;
+        }
+    };
 
     return (
         <>
@@ -151,7 +159,7 @@ const BannersList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کل بنر</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {paginatedBanners.length}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -169,7 +177,7 @@ const BannersList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>بنر جدید</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newBannersCount}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -220,6 +228,7 @@ const BannersList = () => {
                                 <h4 className='text-[14px] font-IRANYekan-Bold'>کل مقالات</h4>
                                 <button
                                     type="button"
+                                    onClick={handleDeleteBanners}
                                     className={`
                                     cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
                                     ${selectedIds.length > 0 ? "flex" : "hidden"}
@@ -281,7 +290,10 @@ const BannersList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setEditBannerModal(true)}
+                                                onClick={() => {
+                                                    setEditBannerModal(true);
+                                                    setBannerId(banner._id)
+                                                }}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -300,7 +312,10 @@ const BannersList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteBannerModal(true)}
+                                                onClick={() => {
+                                                    setDeleteBannerModal(true);
+                                                    setBannerId(banner._id)
+                                                }}
                                                 className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -378,6 +393,8 @@ const BannersList = () => {
                             </div>
                         </div>
                     </div>
+                ) : isLoading ? (
+                    <TableSkeleton rows={5} />
                 ) : (
                     <EmptyPage name='بنری' text='بنرهای' />
                 )
@@ -385,23 +402,29 @@ const BannersList = () => {
             {
                 createBannerModal && (
                     <CreateBanner
-                        confirm={handelCreateBanner}
+                        onSuccess={() => {
+                            setCreateBannerModal(false)
+                        }}
                         closeBtn={() => setCreateBannerModal(false)}
                     />
                 )
             }
             {
                 editBannerModal && (
-                    <EditBanner 
-                        confirm={handleEditBanner}
+                    <EditBanner
+                        _id={bannerId!}
+                        onSuccess={() => {
+                            setEditBannerModal(false)
+                        }}
                         closeBtn={() => setEditBannerModal(false)}
                     />
                 )
             }
             {
                 deleteBannerModal && (
-                    <DeleteModal 
+                    <DeleteModal
                         confirmBtn={handleDeleteBanner}
+                        loading={isLoading}
                         closeBtn={() => setDeleteBannerModal(false)}
                         text='بنر'
                     />
