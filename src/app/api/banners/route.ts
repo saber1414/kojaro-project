@@ -156,7 +156,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({
                 success: false,
                 message: "هیچ بنری یافت نشد"
-            })
+            }, { status: 404 })
         };
 
         const idsToDelete = banners.map((banner) => banner._id);
@@ -172,7 +172,7 @@ export async function DELETE(req: NextRequest) {
                 deletedCount: result.deletedCount,
                 deletedIds: idsToDelete
             }
-        })
+        }, { status: 200 })
     } catch (err: any) {
         console.log("Error Delete Banners =>", err);
         return NextResponse.json({

@@ -4,7 +4,7 @@ import { Advertisement } from "@/types/advertisement";
 
 
 export interface AdvertisementState {
-    data: Advertisement[];
+    advertisement: Advertisement[];
     selectAds: Advertisement | null;
     isLoading: boolean;
     errors: string | null;
@@ -12,7 +12,7 @@ export interface AdvertisementState {
 };
 
 const initialState: AdvertisementState = {
-    data: [],
+    advertisement: [],
     selectAds: null,
     isLoading: false,
     errors: null,
@@ -79,6 +79,19 @@ export const deleteAds = createAsyncThunk("ads/deleteAds", async (_id: string, {
     }
 });
 
+export const deletesAdvertisement = createAsyncThunk("ads/deletesAdvertisement", async (ids: string[], { rejectWithValue }) => {
+    try {
+        const response = await axios.delete("/api/ads", {
+            data: { ids },
+            withCredentials: true
+        });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>;
+        return rejectWithValue(axiosError.response?.data?.message)
+    }
+});
+
 const adsSlice = createSlice({
     name: "ads",
     initialState,
@@ -104,7 +117,7 @@ const adsSlice = createSlice({
             })
             .addCase(fetchAds.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.data = action.payload.data || []
+                state.advertisement = action.payload.data || []
             })
             .addCase(fetchAds.rejected, (state, action) => {
                 state.isLoading = false;
@@ -116,7 +129,7 @@ const adsSlice = createSlice({
             })
             .addCase(fetchAdsById.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.data = action.payload.data
+                state.advertisement = action.payload.data
             })
             .addCase(fetchAdsById.rejected, (state, action) => {
                 state.isLoading = false;
@@ -129,7 +142,7 @@ const adsSlice = createSlice({
             .addCase(createAds.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.successMessage = action.payload.message;
-                state.data.unshift(action.payload.data)
+                state.advertisement.unshift(action.payload.data)
             })
             .addCase(createAds.rejected, (state, action) => {
                 state.isLoading = false;
@@ -144,8 +157,8 @@ const adsSlice = createSlice({
                 state.successMessage = action.payload.message;
                 const updated = action.payload.data;
                 if (updated) {
-                    const index = state.data.findIndex((ads) => ads._id === updated._id);
-                    if (index !== -1) state.data[index] = updated;
+                    const index = state.advertisement.findIndex((ads) => ads._id === updated._id);
+                    if (index !== -1) state.advertisement[index] = updated;
                     if (state.selectAds?._id === updated._id) {
                         state.selectAds = null
                     }
@@ -162,11 +175,27 @@ const adsSlice = createSlice({
             .addCase(deleteAds.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.successMessage = action.payload.message;
-                state.data = state.data.filter((ads) => ads._id !== action.payload._id);
+                state.advertisement = state.advertisement.filter((ads) => ads._id !== action.payload._id);
                 if (state.selectAds?._id === action.payload._id) {
                     state.selectAds = null
                 }
             })
+            .addCase(deletesAdvertisement.pending, (state) => {
+                state.isLoading = true;
+                state.errors = null
+            })
+            .addCase(deletesAdvertisement.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.successMessage = action.payload.message;
+                state.advertisement = state.advertisement.filter((ads) => ads._id !== action.payload._id);
+                if (state.selectAds?._id === action.payload._id) {
+                    state.selectAds = null
+                }
+            })
+            .addCase(deletesAdvertisement.rejected, (state, action: PayloadAction<any>) => {
+                state.isLoading = false;
+                state.errors = action.payload;
+            });
     },
 });
 

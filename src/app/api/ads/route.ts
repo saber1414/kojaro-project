@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
+import { Types } from "mongoose";
 
 export async function GET(req: NextRequest) {
     try {
@@ -156,3 +157,68 @@ export async function POST(req: NextRequest) {
     }
 };
 
+export async function DELETE(req: NextRequest) {
+    try {
+        await ConnectedDB();
+
+        const admin = await authenticate(req);
+        if (!admin || admin.role !== "admin") {
+            return NextResponse.json({
+                success: false,
+                message: "فقط مدیر مجاز به حذف تبلیغات می باشد"
+            }, { status: 401 })
+        };
+
+        const body = await req.json();
+
+        const { ids } = body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "حداقل یک شناسه انتخاب کنید"
+            }, { status: 400 })
+        };
+
+        const isObjectId = ids.filter((id) => Types.ObjectId.isValid(id));
+        if (isObjectId.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "شناسه‌های ارسال‌شده معتبر نیستند"
+            }, { status: 400 })
+        };
+
+        const advertisement = await Advertisement.find({
+            _id: { $in: isObjectId }
+        }).select("_id");
+
+        if (advertisement.length === 0) {
+            return NextResponse.json({
+                success: false,
+                message: "هیچ تبلیغی یافت نشد"
+            }, { status: 404 })
+        };
+
+        const idsToDelete = advertisement.map((ads) => ads._id);
+
+        const result = await Advertisement.deleteMany({
+            _id: { $in: idsToDelete }
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: `${result.deletedCount} تبلیغ باموفقیت حذف شد`,
+            data: {
+                deletedCount: result.deletedCount,
+                deletedIds: idsToDelete
+            }
+        }, { status: 200 })
+    } catch (err: any) {
+        console.log("Error Deletes Ads =>", err);
+        return NextResponse.json({
+            success: false,
+            message: "خطا در حذف تبلیغات",
+            error: err
+        }, { status: 500 })
+    }
+};

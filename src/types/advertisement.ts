@@ -19,6 +19,6 @@ export interface Advertisement {
         image?: string;
         fullname?: string;
     };
-    createdAt?: string;
+    createdAt: string;
     updatedAt?: string;
 }

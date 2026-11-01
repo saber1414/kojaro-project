@@ -13,6 +13,18 @@ const DetailsAdvertisement = ({ _id, close, advertisement }: DetailsAdvertisemen
         [advertisement, _id]
     );
 
+    const positionLabel = useMemo(() => {
+        const labels: Record<string, string> = {
+            home: "خانه",
+            article: "مقاله",
+            custom: "پیش‌فرض",
+            footer: "فوتر",
+            sidebar: "سایدبار",
+            header: "سربرگ",
+        };
+        return labels[detailsAds?.position || ""] || "نامشخص";
+    }, [detailsAds?.position]);
+
     return (
         <div onClick={close} className='fixed top-0 right-0 left-0 bottom-0 bg-overview z-20'>
             <div onClick={(e) => e.stopPropagation()} className="w-[60%] p-4 bg-gray-50 mx-auto my-0 right-0 left-0 absolute top-[10%] flex flex-col">
@@ -46,13 +58,7 @@ const DetailsAdvertisement = ({ _id, close, advertisement }: DetailsAdvertisemen
                         <img src={`${detailsAds?.image}`} alt={detailsAds?.title} />
                     </div>
                     <div>
-                        {
-                            detailsAds?.position === "home" && "خانه" ||
-                            detailsAds?.position === "article" && "مقاله" ||
-                            detailsAds?.position === "custom" && "پیش فرض" ||
-                            detailsAds?.position === "footer" && "فوتر" ||
-                            detailsAds?.position === "sidebar" && "سایدبار"
-                        }
+                        {positionLabel}
                     </div>
                 </div>
             </div>

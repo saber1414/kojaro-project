@@ -13,6 +13,7 @@ import notificationReducer from "./notifications/notifications";
 import articleCategoriesReducer from "./articleCategories/articleCategories";
 import menuReducer from "./menus/menus";
 import ticketReducer from "./tickets/tickets";
+import advertisementReducer from "./advertisement/advertisement"
 
 export const store = configureStore({
     reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
         articleCategories: articleCategoriesReducer,
         menus: menuReducer,
         tickets: ticketReducer,
+        advertisement: advertisementReducer
     },
     devTools: process.env.NODE_ENV !== "production"
 });

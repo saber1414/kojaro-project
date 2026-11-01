@@ -1,5 +1,18 @@
 import * as yup from "yup";
 
+const isValidUrl = (value?: string): boolean => {
+    if (!value) return false;
+    try {
+        const url = value.startsWith("http://") || value.startsWith("https://")
+            ? value
+            : `https://${value}`;
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 export const adSchema = yup.object().shape({
     title: yup
         .string()
@@ -15,19 +28,13 @@ export const adSchema = yup.object().shape({
         .string()
         .trim()
         .required("لینک تبلیغ الزامی می‌باشد")
-        .url("لینک معتبر نیست"),
-    alt: yup
-        .string()
-        .trim()
-        .max(200)
-        .nullable()
-        .optional(),
-    advertiserName: yup
-        .string()
-        .trim()
-        .max(200)
-        .nullable()
-        .optional(),
+        .test(
+            "is-valid-url",
+            "لینک معتبر نیست",
+            (value) => isValidUrl(value)
+        ),
+    alt: yup.string().trim().max(200).nullable().optional(),
+    advertiserName: yup.string().trim().max(200).nullable().optional(),
     startDate: yup
         .date()
         .typeError("تاریخ شروع معتبر نیست")
@@ -36,16 +43,9 @@ export const adSchema = yup.object().shape({
         .date()
         .typeError("تاریخ پایان معتبر نیست")
         .required("تاریخ پایان الزامی است")
-        .min(
-            yup.ref("startDate"),
-            "تاریخ پایان باید بعد از تاریخ شروع باشد"
-        ),
+        .min(yup.ref("startDate"), "تاریخ پایان باید بعد از تاریخ شروع باشد"),
     isActive: yup.boolean().optional(),
-    order: yup
-        .number()
-        .integer()
-        .min(0)
-        .optional(),
+    order: yup.number().integer().min(0).optional(),
     position: yup
         .string()
         .oneOf(["home", "sidebar", "header", "footer", "article", "custom"])

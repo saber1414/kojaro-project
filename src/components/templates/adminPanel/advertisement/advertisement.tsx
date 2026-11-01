@@ -2,62 +2,20 @@
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CreateAdvertisement from './createAdvertisement';
 import EditAdvertisement from './editAdvertisement';
 import DetailsAdvertisement from './detailsAdvertisement';
 import { Advertisement } from '@/types/advertisement';
-
-const advertisement = [
-    {
-        _id: "6aa01a631f1313e486bbbb45",
-        title: "زوم اپ",
-        image: "/uploads/ad__11abc2de-1382-4179-8b0f-8d851dfd977c.gif",
-        link: "https://www.zoomapp.app/download/",
-        alt: "زوم اپ",
-        advertiserName: "زوم اپ",
-        startDate: "2026-09-08T00:00:00.000Z",
-        endDate: "2026-10-07T23:59:59.000Z",
-        isActive: false,
-        order: 1,
-        position: "home",
-        clickCount: 0,
-        viewCount: 0,
-        createdBy: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        createdAt: "2026-09-08T14:23:31.194Z",
-        updatedAt: "2026-09-08T14:23:31.194Z"
-    },
-    {
-        _id: "6aa01a631f1313e486bbbb46",
-        title: "اقامت 24",
-        image: "/uploads/ad__11abc2de-1382-4179-8b0f-8d851dfd977c.gif",
-        link: "https://www.eghamat24.com/",
-        alt: "اقامت 24",
-        advertiserName: "اقامت 24",
-        startDate: "2026-10-08T00:00:00.000Z",
-        endDate: "2026-12-07T23:59:59.000Z",
-        isActive: true,
-        order: 2,
-        position: "sidebar",
-        clickCount: 0,
-        viewCount: 0,
-        createdBy: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        createdAt: "2026-09-08T14:23:31.194Z",
-        updatedAt: "2026-09-08T14:23:31.194Z"
-    },
-];
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { deleteAds, deletesAdvertisement, fetchAds } from '@/features/advertisement/advertisement';
+import toast from 'react-hot-toast';
+import { useReactionItems } from '@/hooks/useRecentCount';
 
 const AdvertisementList = () => {
+    const dispth = useAppDispatch();
+    const { isLoading, advertisement } = useAppSelector(state => state.advertisement);
+
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
@@ -67,6 +25,12 @@ const AdvertisementList = () => {
     const [editModel, setEditModal] = useState<boolean>(false);
     const [detailsModal, setDetailsModal] = useState<boolean>(false);
     const [advertisemenId, setAdvertisemenIdId] = useState<string | null>(null);
+    const [adsId, setAdsId] = useState<string | null>(null);
+    const newAdsCount = useReactionItems(advertisement, 7)
+
+    useEffect(() => {
+        dispth(fetchAds({})).unwrap();
+    }, [dispth]);
 
     const handelSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value)
@@ -89,7 +53,7 @@ const AdvertisementList = () => {
                 link.includes(q)
             )
         })
-    }, [advertisement,search]);
+    }, [advertisement, search]);
 
     const total = allAdvertisement.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -146,16 +110,28 @@ const AdvertisementList = () => {
     };
 
     const handelDeleteConfirm = async () => {
-        console.log('delete')
+        try {
+            await dispth(deleteAds(adsId!)).unwrap();
+            dispth(fetchAds({}));
+            toast.success("تبلیغ باموفقیت حذف شد");
+            setDeleteModal(false);
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
     };
 
-    const handelCreateConfirm = async () => {
-        console.log('create ads')
-    };
-
-    const handelEditConfirm = async () => {
-        console.log('edit ads')
-    };
+    const handelDeleteSelected = async () => {
+        try {
+            await dispth(deletesAdvertisement(selectedIds!)).unwrap();
+            dispth(fetchAds({}));
+            setSelectedIds([]);
+            toast.success("تبلیغات باموفقیت حذف شد");
+        } catch (err: any) {
+            toast.error(err);
+            return;
+        }
+    }
 
     const detailsAdvertisemenHandel = (_id: string) => {
         setAdvertisemenIdId(_id);
@@ -195,7 +171,7 @@ const AdvertisementList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>کل تبلیغات</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {advertisement.length}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -213,7 +189,7 @@ const AdvertisementList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>جدید</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newAdsCount}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -263,6 +239,7 @@ const AdvertisementList = () => {
                         <h4 className='text-[14px] font-IRANYekan-Bold'>کل مقالات</h4>
                         <button
                             type="button"
+                            onClick={handelDeleteSelected}
                             className={`
                                     cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
                                     ${selectedIds.length ? "flex" : "hidden"}
@@ -311,8 +288,8 @@ const AdvertisementList = () => {
                                         </div>
                                         <div>{index + 1}</div>
                                         <div>{ads.title}</div>
-                                        <div>{new Date(ads.startDate).toLocaleDateString("fa-ir")}</div>
-                                        <div>{new Date(ads.endDate).toLocaleDateString("fa-ir")}</div>
+                                        <div>{new Date(ads.startDate!).toLocaleDateString("fa-ir")}</div>
+                                        <div>{new Date(ads.endDate!).toLocaleDateString("fa-ir")}</div>
                                         <div>{ads.advertiserName}</div>
                                         <div className={ads.isActive ? "bg-green-100" : "bg-red-100"}>{ads.isActive ? "فعال" : "غیر فعال"}</div>
                                         <div className='flex items-center justify-center gap-x-2'>
@@ -333,7 +310,10 @@ const AdvertisementList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setEditModal(true)}
+                                                onClick={() => {
+                                                    setEditModal(true)
+                                                    setAdsId(ads._id)
+                                                }}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -352,7 +332,10 @@ const AdvertisementList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteModal(true)}
+                                                onClick={() => {
+                                                    setDeleteModal(true);
+                                                    setAdsId(ads._id)
+                                                }}
                                                 className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -439,13 +422,13 @@ const AdvertisementList = () => {
                             confirmBtn={handelDeleteConfirm}
                             closeBtn={() => setDeleteModal(false)}
                             text='تبلیغ'
+                            loading={isLoading}
                         />
                     )
                 }
                 {
                     createModal && (
                         <CreateAdvertisement
-                            confirm={handelCreateConfirm}
                             close={() => setCreateModal(false)}
                         />
                     )
@@ -453,14 +436,14 @@ const AdvertisementList = () => {
                 {
                     editModel && (
                         <EditAdvertisement
-                            confirm={handelEditConfirm}
+                            _id={adsId!}
                             close={() => setEditModal(false)}
                         />
                     )
                 }
                 {
                     detailsModal && (
-                        <DetailsAdvertisement 
+                        <DetailsAdvertisement
                             close={() => setDetailsModal(false)}
                             _id={advertisemenId!}
                             advertisement={allAdvertisement as Advertisement[]}
