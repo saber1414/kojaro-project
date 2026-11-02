@@ -109,6 +109,58 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ para
         }, { status: 200 })
 
     } catch (err: any) {
-        console.log("Error Edit Notification")
+        console.log("Error Edit Notification");
+        return NextResponse.json({
+            success: false,
+            message: "خطا در ویرایش اعلان",
+            error: err
+        }, { status: 500 })
+    }
+};
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ param: string }> }) {
+    try {
+        await ConnectedDB();
+
+        const admin = await authenticate(req);
+        if (!admin || !["admin", "author"].includes(admin.role)) {
+            return NextResponse.json({
+                success: false,
+                message: "فقط مدیر و نویسنده مجاز به ایجاد اعلان می باشند"
+            }, { status: 401 })
+        };
+
+        const { param } = await params;
+
+        if (!isObjectId(param)) {
+            return NextResponse.json({
+                success: false,
+                message: "شناسه معتبر نیست"
+            }, { status: 400 })
+        };
+
+        const notification = await Notification.findById(param);
+        if (!notification) {
+            return NextResponse.json({
+                success: false,
+                message: "اعلان یافت نشد"
+            }, { status: 404 })
+        };
+
+        const updated = await Notification.findByIdAndDelete(param);
+
+        return NextResponse.json({
+            success: true,
+            message: "اعلان باموفقیت حذف شد",
+            data: updated
+        }, { status: 200 })
+
+    } catch (err: any) {
+        console.log("Deleted Error =>", err);
+        return NextResponse.json({
+            success: false,
+            message: "خطا در حذف اعلان",
+            error: err
+        }, { status: 500 })
     }
 };

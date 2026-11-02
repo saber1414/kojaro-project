@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
-import { Notification } from "@/types/notification";
+import { CreateNotificationPayload, Notification } from "@/types/notification";
 import { Pagination } from "@/types/pagination";
 
 export interface NotificationState {
@@ -23,26 +23,28 @@ const initialState: NotificationState = {
     successMessage: null
 };
 
-const fetchNotifications = createAsyncThunk("notifications/fetchNotifications", async (
-    param: { page?: number, limit?: number, search?: string },
+export const fetchNotifications = createAsyncThunk("notifications/fetchNotifications", async (
+    params: { page?: number; limit?: number; search?: string },
     { rejectWithValue }
 ) => {
     try {
         const query = new URLSearchParams();
+        query.append("page", String(params.page ?? 1));
+        query.append("limit", String(params.limit ?? 100));
+        if (params.search) query.append("search", params.search);
 
-        if (param.page) query.append("page", String(param.page));
-        if (param.limit) query.append("limit", String(param.limit));
-        if (param.search) query.append("search", param.search);
-
-        const response = await axios.get(`/api/notifications?=${query.toString()}`, { withCredentials: true });
-        return response.data
+        const response = await axios.get(`/api/notifications?${query.toString()}`, {
+            withCredentials: true,
+        });
+        return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError.response?.data?.message)
+        return rejectWithValue(axiosError.response?.data?.message);
     }
-});
+}
+);
 
-const fetchByNotification = createAsyncThunk("notifications/fetchByNotification", async (_id: string, { rejectWithValue }) => {
+export const fetchByNotification = createAsyncThunk("notifications/fetchByNotification", async (_id: string, { rejectWithValue }) => {
     try {
         const response = await axios.get(`/api/notifications/${_id}`, { withCredentials: true });
         return response.data;
@@ -52,8 +54,8 @@ const fetchByNotification = createAsyncThunk("notifications/fetchByNotification"
     }
 });
 
-const createNotification = createAsyncThunk("notifications/createNotification", async (
-    data: Notification,
+export const createNotification = createAsyncThunk("notifications/createNotification", async (
+    data: CreateNotificationPayload,
     { rejectWithValue }
 ) => {
     try {
@@ -65,22 +67,30 @@ const createNotification = createAsyncThunk("notifications/createNotification", 
     }
 });
 
-const editNotification = createAsyncThunk("notifications/editNotification", async (
-    { _id, data }: { _id: string, data: Notification },
+export const editNotification = createAsyncThunk("notifications/editNotification", async (
+    { _id, data }: { _id: string; data: CreateNotificationPayload },
     { rejectWithValue }
 ) => {
     try {
-        const response = await axios.put(`/api/notifications/${_id}`, { data }, { withCredentials: true });
-        return response.data
+        const response = await axios.put(`/api/notifications/${_id}`, data, {
+            withCredentials: true,
+        });
+        return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
-        return rejectWithValue(axiosError.response?.data?.message)
+        return rejectWithValue(
+            axiosError.response?.data?.message || "خطا در ویرایش اعلان"
+        );
     }
-});
+}
+);
 
-const deletedNotidfications = createAsyncThunk("notifications/deletedNotidfications", async (ids: string[], { rejectWithValue }) => {
+export const deletedNotidfications = createAsyncThunk("notifications/deletedNotidfications", async (ids: string[], { rejectWithValue }) => {
     try {
-        const response = await axios.delete(`/api/notifications/${ids}`, { withCredentials: true });
+        const response = await axios.delete(`/api/notifications`, {
+            data: { ids },
+            withCredentials: true
+        });
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;
@@ -88,6 +98,15 @@ const deletedNotidfications = createAsyncThunk("notifications/deletedNotidficati
     }
 });
 
+export const deletedNotidfication = createAsyncThunk("notifications/deletedNotidfication", async (_id: string, { rejectWithValue }) => {
+    try {
+        const response = await axios.delete(`/api/notifications/${_id}`, { withCredentials: true });
+        return response.data;
+    } catch (err: any) {
+        const axiosError = err as AxiosError<any>;
+        return rejectWithValue(axiosError.response?.data?.message)
+    }
+});
 
 const notificationSlice = createSlice({
     name: "notifications",
@@ -114,8 +133,16 @@ const notificationSlice = createSlice({
             })
             .addCase(fetchNotifications.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.notifications = action.payload.data?.notifications || [];
-                state.pagination = action.payload.data?.pagination || null
+
+                const payload = action.payload?.data;
+
+                if (Array.isArray(payload)) {
+                    state.notifications = payload;
+                    state.pagination = null;
+                } else {
+                    state.notifications = payload?.notifications ?? [];
+                    state.pagination = payload?.pagination ?? null;
+                }
             })
             .addCase(fetchNotifications.rejected, (state, action) => {
                 state.isLoading = false;
@@ -155,12 +182,17 @@ const notificationSlice = createSlice({
             })
             .addCase(editNotification.fulfilled, (state, action) => {
                 state.isUpdated = false;
-                state.successMessage = action.payload.data?.message;
-                const updated = action.payload.data;
-                if (updated) {
-                    const index = state.notifications.findIndex((notification) => notification._id === updated._id);
+                state.successMessage = action.payload?.message ?? null;
+
+                const updated = action.payload?.data;
+                if (updated?._id) {
+                    const index = state.notifications.findIndex(
+                        (n) => n._id === updated._id
+                    );
                     if (index !== -1) state.notifications[index] = updated;
-                    if (state.seletedNotification?._id === updated._id) state.seletedNotification = updated
+                    if (state.seletedNotification?._id === updated._id) {
+                        state.seletedNotification = updated;
+                    }
                 }
             })
             .addCase(editNotification.rejected, (state, action) => {
@@ -174,7 +206,7 @@ const notificationSlice = createSlice({
             .addCase(deletedNotidfications.fulfilled, (state, action) => {
                 state.isUpdated = false;
                 state.successMessage = action.payload?.message;
-                state.notifications.filter((notification) => notification._id !== action.payload._id);
+                state.notifications.filter((notification) => notification._id !== action.payload?._id);
                 if (state.seletedNotification?._id === action.payload._id) {
                     state.seletedNotification = null
                 };
@@ -183,6 +215,22 @@ const notificationSlice = createSlice({
                 }
             })
             .addCase(deletedNotidfications.rejected, (state, action) => {
+                state.isUpdated = false;
+                state.error = action.payload as string
+            })
+            .addCase(deletedNotidfication.pending, (state) => {
+                state.isUpdated = true;
+                state.error = null;
+            })
+            .addCase(deletedNotidfication.fulfilled, (state, action) => {
+                state.isUpdated = false;
+                state.successMessage = action.payload?.message;
+                state.notifications = state.notifications.filter((notification) => notification._id !== action.payload._id);
+                if (state.seletedNotification?._id === action.payload._id) {
+                    state.seletedNotification = null
+                }
+            })
+            .addCase(deletedNotidfication.rejected, (state, action) => {
                 state.isUpdated = false;
                 state.error = action.payload as string
             })

@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/features/hooks';
 import { deleteAds, deletesAdvertisement, fetchAds } from '@/features/advertisement/advertisement';
 import toast from 'react-hot-toast';
 import { useReactionItems } from '@/hooks/useRecentCount';
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
 
 const AdvertisementList = () => {
     const dispth = useAppDispatch();
@@ -412,6 +413,8 @@ const AdvertisementList = () => {
                                 </div>
                             </div>
                         </div>
+                    ) : isLoading ? (
+                        <TableSkeleton rows={5} />
                     ) : (
                         <EmptyPage name='تبلیغ' text='تبلیغات' />
                     )

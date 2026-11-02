@@ -1,62 +1,48 @@
 "use client"
 import EmptyPage from '@/components/modules/AdminPanel/EmptyPage/EmptyPage';
 import Search from '@/components/modules/AdminPanel/Search/Search';
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CreateNotification from './createNotification';
 import EditNotification from './editNotification';
 import DeleteModal from '@/components/modules/AdminPanel/DeleteModal/DeleteModal';
-
-const notifications = [
-    {
-        _id: "6abd4824b536978ff99cc8a9",
-        title: "این یک اعلان تستی می باشد 🎉",
-        description: "این یک توضیحات تستی می باشد",
-        isActive: false,
-        author: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        createdAt: "2026-09-30T17:34:28.976Z",
-        updatedAt: "2026-09-30T17:34:28.976Z"
-    },
-    {
-        _id: "6abd4824b536978ff99cc812",
-        title: "بروزرسانی",
-        description: "بخش مقالات بروزرسانی شد",
-        isActive: true,
-        author: {
-            _id: "6a8a996304e544b90136040c",
-            username: "saber__dev",
-            image: "images/profile13.png",
-            fullname: "صابر اسماعیلی"
-        },
-        createdAt: "2026-10-10T17:34:28.976Z",
-        updatedAt: "2026-10-10T17:34:28.976Z"
-    },
-];
+import { useAppDispatch, useAppSelector } from '@/features/hooks';
+import { deletedNotidfication, deletedNotidfications, fetchNotifications } from '@/features/notifications/notifications';
+import TableSkeleton from '@/components/modules/AdminPanel/TableSkeleton/TableSkeleton';
+import toast from 'react-hot-toast';
+import { useReactionItems } from '@/hooks/useRecentCount';
 
 const NotificationsList = () => {
+    const dispatch = useAppDispatch();
+    const { isLoading, isUpdated, notifications } = useAppSelector(state => state.notifications);
+
+    useEffect(() => {
+        dispatch(fetchNotifications({})).unwrap()
+    }, []);
+
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [createModal, setCreateModal] = useState<boolean>(false);
     const [editModal, setEditModal] = useState<boolean>(false);
-    const [deleteModal,setDeleteModal] = useState<boolean>(false);
+    const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [notificationId, setNotificationId] = useState<string | null>(null);
+    const newNotificationCount = useReactionItems(notifications, 7);
 
     const allNotifications = useMemo(() => {
+        if (!Array.isArray(notifications)) return [];
+
         const onlyNotifications = notifications;
 
         const q = search.trim().toLowerCase();
         if (!q) return onlyNotifications;
 
         return onlyNotifications.filter((notification) => {
-            const title = notification.title;
+            const title = (notification.title || "").toLowerCase();
+            const description = (notification.description || "").toLowerCase();
 
-            return (title.includes(q))
-        })
+            return title.includes(q) || description.includes(q);
+        });
     }, [notifications, search]);
 
     const total = allNotifications.length;
@@ -69,7 +55,7 @@ const NotificationsList = () => {
     const paginatedNotifications = useMemo(() => {
         const start = (currentPage - 1) * limit;
         return allNotifications.slice(start, start + limit);
-    }, [allNotifications]);
+    }, [allNotifications, currentPage, limit]);
 
     const handelSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value)
@@ -81,7 +67,7 @@ const NotificationsList = () => {
     };
 
     const limitOptions = useMemo(() => {
-        const totalCount = paginatedNotifications.length;
+        const totalCount = allNotifications.length;
 
         if (totalCount <= 0) return [10];
 
@@ -90,11 +76,11 @@ const NotificationsList = () => {
 
         if (!options.includes(totalCount)) options.push(totalCount);
 
-        return options.length ? options : [totalCount]
-    }, [paginatedNotifications]);
+        return options.length ? options : [totalCount];
+    }, [allNotifications.length]);
 
-    const goPrev = () => setPage((page) => Math.max(1, page - 1));
-    const goNext = () => setPage((prev) => Math.min(totalPages, page - 1));
+    const goPrev = () => setPage((prev) => Math.max(1, prev - 1));
+    const goNext = () => setPage((prev) => Math.min(totalPages, prev + 1));
 
     const pageIds = useMemo(() =>
         paginatedNotifications.map((notification) => notification._id),
@@ -116,17 +102,29 @@ const NotificationsList = () => {
         setSelectedIds((prev) => prev.includes(_id) ? prev.filter((x) => x !== _id) : [...prev, _id])
     };
 
-    const hamdelCreateNotification = async () => {
-        console.log('create notifcation')
-    };
-
-    const handelEditNotification = async () => {
-        console.log('edit notification')
-    };
-
-    const handelDeleteNotification = async() => {
-        console.log('delete notification')
+    const deletedSelectNotifications = async () => {
+        try {
+            await dispatch(deletedNotidfications(selectedIds)).unwrap();
+            dispatch(fetchNotifications({}));
+            toast.success("اعلان های انتخابی حذف شد");
+            setSelectedIds([]);
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
     }
+
+    const handelDeleteNotification = async () => {
+        try {
+            await dispatch(deletedNotidfication(notificationId!)).unwrap();
+            dispatch(fetchNotifications({}));
+            toast.success("اعلان حذف شد");
+            setNotificationId(null);
+        } catch (err: any) {
+            toast.error(err);
+            return
+        }
+    };
 
     return (
         <>
@@ -160,7 +158,7 @@ const NotificationsList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>اعلان ها</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {notifications.length}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -178,7 +176,7 @@ const NotificationsList = () => {
                     </div>
                     <div>
                         <span className='text-[14px] text-gray-icon font-IRANYekan-Bold'>جدید</span>
-                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: 0</p>
+                        <p className='pt-2 text-[13px] font-IRANYekan-Bold'>تعداد: {newNotificationCount}</p>
                     </div>
                 </div>
                 <div className="w-full sm:w-[49%] md:w-[49%] lg:w-[49%] xl:w-[23%] 2xl:w-[24%] mb-2 xl:mb-0 h-20 bg-white rounded-lg flex flex-row items-center justify-between px-2">
@@ -227,6 +225,7 @@ const NotificationsList = () => {
                                 <h4 className='text-[14px] font-IRANYekan-Bold'>اعلانات</h4>
                                 <button
                                     type="button"
+                                    onClick={deletedSelectNotifications}
                                     className={`
                                     cursor-pointer h-8 px-4 transition-all ease-in rounded-sm bg-red-500 hover:bg-red-800 text-white  items-center justify-center text-[13px]
                                     ${selectedIds.length ? "flex" : "hidden"}
@@ -292,7 +291,10 @@ const NotificationsList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setEditModal(true)}
+                                                onClick={() => {
+                                                    setEditModal(true);
+                                                    setNotificationId(notification._id)
+                                                }}
                                                 className='cursor-pointer bg-sky-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-sky-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -311,7 +313,10 @@ const NotificationsList = () => {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteModal(true)}
+                                                onClick={() => {
+                                                    setDeleteModal(true)
+                                                    setNotificationId(notification._id)
+                                                }}
                                                 className='cursor-pointer bg-red-100 w-8 h-8 rounded-md flex items-center justify-center hover:bg-red-200 transition-colors'>
                                                 <svg
                                                     width='16'
@@ -389,6 +394,8 @@ const NotificationsList = () => {
                             </div>
                         </div>
                     </div>
+                ) : isLoading ? (
+                    <TableSkeleton rows={5} />
                 ) : (
                     <EmptyPage
                         name='اعلانی'
@@ -399,7 +406,6 @@ const NotificationsList = () => {
             {
                 createModal && (
                     <CreateNotification
-                        confirm={hamdelCreateNotification}
                         close={() => setCreateModal(false)}
                     />
                 )
@@ -407,17 +413,18 @@ const NotificationsList = () => {
             {
                 editModal && (
                     <EditNotification
-                        confirm={handelEditNotification}
+                        _id={notificationId!}
                         close={() => setEditModal(false)}
                     />
                 )
             }
             {
                 deleteModal && (
-                    <DeleteModal 
+                    <DeleteModal
                         text='اعلان'
                         confirmBtn={handelDeleteNotification}
                         closeBtn={() => setDeleteModal(false)}
+                        loading={isUpdated}
                     />
                 )
             }

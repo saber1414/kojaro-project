@@ -12,3 +12,9 @@ export interface Notification {
     createdAt: string;
     updatedAt: string
 };
+
+export interface CreateNotificationPayload {
+    title: string;
+    description: string;
+    
+};
