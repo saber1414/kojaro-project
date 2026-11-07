@@ -1,6 +1,7 @@
 export type CommentType = "comment" | "question";
 export type CommentStatus = "pending" | "reject" | "approved" | "spam";
 export type ReactionType = "like" | "heart" | "laugh" | "think" | "moai" | "dislike";
+
 export type CommentAuthor = {
     _id: string,
     fullname?: string,
@@ -20,11 +21,16 @@ export interface ReactionCounts {
 export interface Comment {
     _id: string;
     content: string;
+    approvedBy: {
+        _id: string;
+        fullname: string;
+        username: string
+    };
     type: CommentType;
     isSpoiler: boolean;
     status: CommentStatus;
-    author: CommentAuthor | string;
-    article: string | { _id: string; title?: string; slug?: string };
+    author: CommentAuthor;
+    article: { _id: string; title: string; slug?: string };
     parentComment?: string | null;
     replies?: Comment[];
     reactions?: any[];

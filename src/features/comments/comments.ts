@@ -122,7 +122,7 @@ export const deleteComment = createAsyncThunk("comments/deleteComment", async (_
 
 export const moderateComment = createAsyncThunk("comments/moderateComment", async ({ _id, status }: { _id: string, status: CommentStatus }, { rejectWithValue }) => {
     try {
-        const response = await axios.put(`/api/comments/${_id}`, { status }, { withCredentials: true });
+        const response = await axios.put(`/api/comments/${_id}/status`, { status }, { withCredentials: true });
         return response.data;
     } catch (err: any) {
         const axiosError = err as AxiosError<any>;

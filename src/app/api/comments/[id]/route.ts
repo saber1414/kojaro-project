@@ -82,75 +82,76 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 };
 
-export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await ConnectedDB();
 
-        const { id } = await params;
-        if (!isValidObject(id)) {
-            return NextResponse.json(
-                { success: false, message: "شناسه معتبر نیست" },
-                { status: 400 }
-            );
+        const admin = await authenticate(req);
+
+        if (admin?.role !== "admin") {
+            return NextResponse.json({
+                success: false,
+                message: "فقط مدیر مجاز به حذف"
+            }, { status: 401 })
         };
 
-        const user = await authenticate(req);
-        if (!user) {
-            return NextResponse.json(
-                { success: false, message: "احراز هویت نشده‌اید" },
-                { status: 401 }
-            );
+        const { id } = await params;
+
+        if (!isValidObject(id)) {
+            return NextResponse.json({
+                success: false,
+                message: "شناسه معتبر نیست"
+            }, { status: 400 })
         };
 
         const comment = await Comment.findById(id);
         if (!comment || comment.isDeleted) {
-            return NextResponse.json(
-                { success: false, message: "دیدگاه یافت نشد" },
-                { status: 404 }
-            );
+            return NextResponse.json({
+                success: false,
+                message: "دیدگاه یافت نشد"
+            }, { status: 404 })
         };
 
-        const article = await Article.findById(comment.article).select("author");
+        const article = await Article.findById(comment.article).select("article");
 
-        const isOwner = comment.author.toString() === user._id.toString();
-        const isAdmin = user.role === "admin";
-        const isArticleAuthor =
-            article && article.author?.toString() === user._id.toString();
+        const isOwner = comment.article.toString() === admin._id.toString();
+        const isAdmin = admin.role === "admin";
+        const isArticleAuthor = article && article.author?.toString() === admin._id.toString();
 
         if (!isOwner && !isAdmin && !isArticleAuthor) {
-            return NextResponse.json(
-                { success: false, message: "مجاز به حذف نیستید" },
-                { status: 403 }
-            );
+            return NextResponse.json({
+                success: false,
+                message: 'مجاز به حذف نیستید'
+            }, { status: 403 })
         };
 
-        comment.isDeleted = true;
-        await comment.save();
+        await Comment.findByIdAndDelete(id);
 
         if (comment.parentComment) {
             await Comment.findByIdAndUpdate(comment.parentComment, {
-                $pull: { replies: comment._id },
+                $pull: { replies: comment._id }
+            })
+        };
+
+        if (comment.replies && comment.replies.lenght > 0) {
+            await Comment.deleteMany({ _id: { $in: comment.replies } });
+        };
+
+        if (comment.article) {
+            await Article.findByIdAndUpdate(comment.article, {
+                $pull: { comments: comment._id },
             });
         };
 
-        return NextResponse.json(
-            {
-                success: true,
-                message: "دیدگاه با موفقیت حذف شد",
-            },
-            { status: 200 }
-        );
+        return NextResponse.json({
+            success: true,
+            message: 'دیدگاه باموفقیت حذف شد'
+        }, { status: 200 })
     } catch (err: any) {
         console.log("Error Delete Comment =>", err);
-        return NextResponse.json(
-            {
-                success: false,
-                message: "خطا در حذف دیدگاه",
-            },
-            { status: 500 }
-        );
+        return NextResponse.json({
+            success: false,
+            message: "خطا در حذف دیدگاه",
+        }, { status: 500 })
     }
-}
+};
